@@ -68,6 +68,27 @@ there) and CAVA (no audio device, so no spectrum process).
 
 Memory: about 20–35 MiB per pane process and 27 MiB for void-core, about 175 MiB in total.
 
+## Follow-up: both screens, Kitty, lyrics view, shortcuts
+
+| | result |
+|---|---|
+| Crimson → VOID → back, now with **both** wallpapers, Kitty (Crimson's `kitty.conf` + `crimson.conf`) and Crimson's five global shortcuts | every compared file and both desktops identical afterwards |
+| both desktops after activation | left `DP-1.png` 2560×1440, right `HDMI-A-1.png` 1920×1080, found by screen geometry and **read back from Plasma** |
+| Plasma disagrees with KScreen about a monitor position | activation fails with "no desktop at 2560,0" instead of claiming success; deactivate → identical to before |
+| planner on synthetic packs | wide image → **panorama** (seam columns continuous), two similar images → **matched pair**, colourful image never picked, manual left/right overrides, portrait monitor + 4K at 125 % → exact 1080×1920 and 3840×2160, no pack → procedural; every output pure grey; source files byte-identical |
+| Kitty config through **Kitty 0.32's own parser** | everything accepted except `cursor_trail*` (Kitty 0.37+, Crimson already uses them) |
+| **real Kitty under Xvfb** running `void lyrics` with VOID's config | window background `#080808`, **0 of 942,400 pixels non-grey**, synced lyrics from the real void-core (no second backend), correct line at 0:11 |
+| `void lyrics` frames | context lines, underlined active word, Kitty 2× line (OSC 66) and block-font fallback, plain/offline messages, monochrome |
+| `void kitty …` command lines | your `kitty.conf` first, VOID's second, `kitty.conf` never modified |
+| `void profile minimal` | Kitty opacity file → 1.0, back to 0.96 on balanced |
+| Kitty edited while VOID active | your edit kept, only VOID's three lines removed |
+
+Not tested here: the **real wallpaper pack** (`pack 1` isn't in the container, so no choice has been
+made for your images yet — `void wallpaper` shows it); real Plasma applying the two wallpapers
+(Plasma scripting ran in a test double that executes VOID's actual JavaScript); KDE picking up the
+shortcut swap after login; Kitty ≥ 0.40's text sizing (the container has 0.32 — the escape sequence is
+tested, the rendering isn't).
+
 ## Not tested (needs your machine)
 
 * Real KDE Plasma 6 / KWin: that `plasma-apply-colorscheme`, the KWin rule (placement, borderless,

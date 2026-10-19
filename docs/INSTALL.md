@@ -60,7 +60,7 @@ void inspect
 
 Check the report (also saved to `docs/INSPECTION.md`):
 
-* **monitors** — the line marked `DASHBOARD →` must be your **right-hand** monitor. If it isn't,
+* **monitors** — `RIGHT/DASH →` must be your **right-hand** monitor and `LEFT →` the other one. If not,
   set it in `~/.config/void-desktop/config.toml`:
   ```toml
   [dashboard]
@@ -70,14 +70,17 @@ Check the report (also saved to `docs/INSPECTION.md`):
 * **Spotify / Spicetify** — package type, version, and whether Spicetify is installed.
 * **Crimson Desktop** — which services are running (they'll be paused on activation).
 
-Optional: preview the wallpaper choice before activating:
+Optional: preview both screens' wallpapers before activating:
 
 ```bash
-void wallpaper                         # ranks the pack, writes monochrome copies, sets nothing
-xdg-open ~/.local/state/void-desktop/wallpaper/candidates.jpg
-# pick a different one if you like:
-void wallpaper --pick "$HOME/Downloads/home/jan/Downloads/pack 1/whatever.png"
+void wallpaper                         # ranks the pack, renders both screens, sets nothing
+xdg-open ~/Projects/void/assets/wallpapers/generated/preview.png      # both monitors, real layout
+xdg-open ~/Projects/void/assets/wallpapers/generated/candidates.jpg   # the ranking
+# choose yourself if you like (same image everywhere, or one per side):
+void wallpaper --pick  "$HOME/Downloads/home/jan/Downloads/pack 1/a.png"
+void wallpaper --left  "$HOME/Downloads/home/jan/Downloads/pack 1/a.png" --right ".../b.png"
 ```
+(to keep a manual choice for `void activate`, put it in config.toml: `[wallpaper] pick_left` / `pick_right`)
 
 ## 5. Activate VOID
 
@@ -90,7 +93,7 @@ You'll be asked, in order:
 | question | answer |
 |---|---|
 | `activate VOID now?` | **y** |
-| `use <image> for the right-hand monitor?` | **y**, or **n** for the procedural VOID wallpaper |
+| `use these wallpapers?` (shows the plan for both monitors) | **y**, or **n** for the procedural VOID wallpapers |
 | (Spotify, only if it's never been patched) `let Spicetify patch Spotify now?` | **y** to theme Spotify — `void deactivate` returns it to stock |
 | (Spotify, system Flatpak/RPM only) `run these two sudo commands now?` | read the two `chmod` commands; **y** to allow theming, **n** to skip Spotify |
 | (if Spotify is running) `Spicetify restarts Spotify … Apply now?` | **y** (playback pauses briefly) |
@@ -112,6 +115,16 @@ fastfetch and the monochrome prompt. Your aliases and `.bashrc` still work.
 
 Plain shell when you want one: `VOID_PLAIN=1 konsole`.
 
+### Kitty
+
+If Kitty is installed, activation also makes every Kitty window VOID (three marked lines at the end of
+`kitty.conf`; your settings and Crimson's include stay). Without touching anything:
+
+```bash
+void kitty            # or scripts/launch-kitty.sh — VOID-mode Kitty
+void kitty lyrics     # full-page synced lyrics (Meta+Alt+L after your next login)
+```
+
 ## 7. Check it worked
 
 ```bash
@@ -125,7 +138,10 @@ Then look for:
 - [ ] Play a song in Spotify → the bottom pane shows title, progress and synced lyrics within a few seconds.
 - [ ] Click the music pane, press `+`/`-` to nudge lyric timing, `space` to pause.
 - [ ] Spotify: black/grey interface, a **VOID** entry in the left sidebar.
-- [ ] Left monitor: your apps in VOID colours (colour schemes are global), its own wallpaper.
+- [ ] Left monitor: a monochrome VOID wallpaper too, matching the right one; `void wallpaper verify` says
+      "Plasma shows the VOID wallpaper on every monitor".
+- [ ] Kitty: black/grey, `Ctrl+Shift+L` opens the lyrics view.
+- [ ] After logging out and in: Meta+Alt+L opens VOID lyrics, Meta+Alt+D toggles the dashboard.
 
 If the dashboard window isn't on the right monitor or has a border, log out and back in once
 (KWin then reads the new window rule), then `void launch`.

@@ -1,6 +1,6 @@
 # VOID
 
-A monochrome, Code Geass-inspired workstation for **Nobara Linux · KDE Plasma · Wayland**.
+A monochrome, Code Geass-inspired workstation for **Nobara Linux · KDE Plasma · Wayland**, across both monitors.
 VOID restyles KDE Plasma, Konsole and Spotify (through Spicetify) in one strict black-to-white
 palette. It also adds a five-pane terminal dashboard on the right-hand monitor with the Geass
 fastfetch, a system monitor, data rain, a clock, and Spotify's now playing with synced lyrics.
@@ -48,12 +48,16 @@ bin/void activate     # backs up first, then applies VOID; undo any time with `v
 | `void launch` / `void stop` | open / close the dashboard on the right-hand monitor |
 | `void profile minimal\|balanced\|showcase` | performance level (default **balanced**); GameMode drops to minimal automatically |
 | `void music` | now playing + synced lyrics in any terminal (also the dashboard's bottom pane) |
+| `void lyrics` · `void kitty lyrics` | full-page synced lyrics (Crimson's Kitty lyrics view, ported) — **Meta+Alt+L** |
+| `void kitty [shell\|music\|cava\|fetch\|dashboard]` | Kitty in VOID mode, without touching kitty.conf ([docs/KITTY.md](docs/KITTY.md)) |
+| `void wallpaper` · `void wallpaper verify` | plan both screens' wallpapers · read them back from Plasma |
+| `void toggle` · `void offset ±100` · `void profile next` | what Meta+Alt+D / ] [ / P run |
 | `void fetch` | the Geass fastfetch |
 | `void status` · `void health` | state · problems (duplicate processes, conflicts, drift) |
 | `void spotify inspect\|status\|apply\|revert\|install-spicetify` | the Spotify part on its own |
 | `void autostart on\|off` | open the dashboard at login (only while VOID is active) |
 
-The same entry points also exist as `scripts/{inspect-system,install,activate,deactivate,launch,stop,restore,health-check}.sh`.
+The same entry points also exist as `scripts/{inspect-system,install,activate,deactivate,launch,launch-kitty,stop,restore,health-check}.sh`.
 
 **Music pane keys:** `space` play/pause · `n`/`p` next/previous · `←`/`→` seek 5 s · `+`/`-` lyric
 offset ±100 ms (saved per track) · `0` reset · `r` refetch lyrics · `f` cycle profile · `q` quit.
@@ -71,10 +75,12 @@ Every setting below is written to the journal *before* it is changed (see
 | Plasma style | Breeze, which takes its colours from the scheme | panels, task manager, launcher, tray and notifications turn monochrome |
 | windows | Breeze decoration, tiny borders, neutral shadows, animation speed 0.7 | |
 | cursor | a monochrome cursor theme, only if one is already installed | nothing is downloaded |
-| wallpaper | right-hand monitor only, a monochrome copy of the best image in your pack | the left monitor keeps its own; originals are only read |
+| wallpapers | **both monitors**: a panorama split by the real monitor geometry, a matched pair, or one image per screen — monochrome, each at its monitor's exact resolution, read back from Plasma | originals are only read; `assets/wallpapers/generated/preview.png` shows the result |
 | lock screen | blurred monochrome copy | |
 | KWin rule | the dashboard window goes to the right monitor, borderless, below other windows | matched by its title `VOID//DASHBOARD` |
 | Konsole | VOID becomes the default profile | your other profiles, including Crimson's, are untouched |
+| Kitty | VOID's `void.conf` included at the end of `kitty.conf` (3 marked lines) | Crimson's include stays; deactivate removes only VOID's lines |
+| shortcuts | Meta+Alt+D/L/P/[/] go to VOID; Crimson's bindings set to none | after the next login; given back on deactivate |
 | Spotify | Spicetify theme **VOID**, Full App Display, VOID sidebar page | Crimson's custom app is set aside while VOID is active |
 
 Never changed: resolution, refresh rate, scaling or monitor arrangement; your shell rc files;

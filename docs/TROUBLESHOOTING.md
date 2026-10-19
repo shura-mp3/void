@@ -16,7 +16,11 @@ Start with `void health` (problems) and `void status` (state).
 | VOID page in Spotify: "theme script is not active" | `inject_theme_js` is off: `void spotify apply` |
 | Konsole still opens Crimson OS / the old profile | close **all** Konsole windows once; Konsole reads its default profile at start |
 | want a plain shell in Konsole | `VOID_PLAIN=1 konsole`, or pick another profile in Konsole's New Tab menu |
-| colours changed on the left monitor too | expected: KDE colour schemes are global. Only the wallpaper and the dashboard are right-monitor-only |
+| colours changed on the left monitor too | expected: KDE colour schemes are global. Only the dashboard is right-monitor-only (both monitors get VOID wallpapers) |
 | two Spotify watchers / duplicate processes | `void health` reports them. `void stop`, then `void launch` |
 | something else changed my KDE settings and deactivate "kept" it | that's the safety rule (your newer value wins). `void deactivate --force` reverts it anyway |
 | I want the pre-VOID desktop back, completely | `void restore` (add `--uninstall` to remove VOID's files) |
+| left monitor kept its old wallpaper | VOID before this update set the right one only: run `void activate` again (safe; it adds the left monitor). Check with `void wallpaper verify` |
+| wallpaper choice for one side | `[wallpaper] pick_left` / `pick_right` in config.toml, then `void activate` |
+| Meta+Alt+L still opens Crimson's lyrics | KDE reads global shortcuts at login: log out and back in. System Settings → Shortcuts shows "VOID Lyrics" |
+| Kitty still looks like Crimson | open a new Kitty window, or `Ctrl+Shift+F5`; check the last lines of `~/.config/kitty/kitty.conf` hold VOID's block |

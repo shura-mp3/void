@@ -35,7 +35,8 @@ supported interface:
 | `colorscheme` | scheme name + accent → `plasma-apply-colorscheme [--accent-color]` (repaints running apps) |
 | `desktoptheme` | `plasma-apply-desktoptheme` |
 | `cursortheme` | `plasma-apply-cursortheme` |
-| `wallpaper` | Plasma desktop scripting (`evaluateScript`) on the desktop whose screen sits at the monitor's position |
+| `wallpaper` | Plasma desktop scripting (`evaluateScript`) on the desktop whose screen sits at the monitor's position — one entry per monitor, so both screens come back |
+| `kitty` | VOID's three marked lines at the end of `kitty.conf` (present / absent / no file) |
 | `service` | `systemctl --user start/stop/enable/disable` (Crimson's units, void-core) |
 | `spicetify` | `spicetify config …` (lists like `extensions` are diffed item by item) |
 
@@ -71,7 +72,7 @@ doesn't support yet), only the Spicetify settings are rolled back and the rest o
 
 * Before **every** activation: `~/.local/state/void-desktop/backups/<time>-activate.tar.gz`
   with a `.json` manifest listing which files existed and which didn't: `kdeglobals`, `kwinrc`,
-  `kwinrulesrc`, `breezerc`, `plasmarc`, `kcminputrc`, `kscreenlockerrc`, `konsolerc`, the Plasma
+  `kwinrulesrc`, `breezerc`, `plasmarc`, `kcminputrc`, `kscreenlockerrc`, `konsolerc`, `kitty/kitty.conf`, `kglobalshortcutsrc`, the Plasma
   desktop layout (`plasma-org.kde.plasma.desktop-appletsrc`, which holds the wallpaper
   assignments), Spicetify's `config-xpui.ini`, and `~/.config/autostart`. The last 10 are kept.
   The first one is recorded as the *original* archive.

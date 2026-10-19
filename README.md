@@ -30,14 +30,14 @@ It lives alongside **Crimson Desktop**. Switching between the two is journaled a
 
 ## Install
 
+Full step-by-step guide: **[docs/INSTALL.md](docs/INSTALL.md)**. In short:
+
 ```bash
-cd ~/Projects/void
+git clone https://github.com/shura-mp3/void.git ~/Projects/void && cd ~/Projects/void
 bin/void install      # checks dependencies; asks before any `sudo dnf install` (official repos only)
 bin/void inspect      # read-only report: Plasma, monitors, Konsole, Spotify/Spicetify, Crimson
-bin/void activate     # backs up first, then applies VOID; prints how to undo
+bin/void activate     # backs up first, then applies VOID; undo any time with `void deactivate`
 ```
-
-`install` links `~/.local/bin/void`, so afterwards plain `void …` works.
 
 ## Everyday commands
 

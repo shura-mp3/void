@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Test double for `systemctl --user` with state in $HOME/systemd-state.json."""
+import json, os, sys
+from pathlib import Path
+st_file = Path(os.environ["HOME"]) / "systemd-state.json"
+st = json.loads(st_file.read_text()) if st_file.exists() else {}
+args = [a for a in sys.argv[1:] if a != "--user"]
+with open(Path(os.environ["HOME"]) / "stub-calls.log", "a") as f:
+    f.write("systemctl " + " ".join(args) + "\n")
+unit_dir = Path(os.environ.get("XDG_CONFIG_HOME", os.environ["HOME"] + "/.config")) / "systemd/user"
+def known(u): return u in st or (unit_dir / u).exists()
+cmd, units = args[0], args[1:]
+if cmd == "daemon-reload":
+    sys.exit(0)
+if cmd == "list-unit-files":
+    for u in [x for x in units if not x.startswith("-")]:
+        if known(u): print(f"{u} {'enabled' if st.get(u, {}).get('enabled') else 'disabled'}")
+    sys.exit(0)
+for u in units:
+    s = st.setdefault(u, {"active": False, "enabled": False})
+    if cmd == "is-active":
+        print("active" if s["active"] else "inactive"); sys.exit(0 if s["active"] else 3)
+    if cmd == "is-enabled":
+        print("enabled" if s["enabled"] else "disabled"); sys.exit(0 if s["enabled"] else 1)
+    if not known(u):
+        print(f"Unit {u} not found.", file=sys.stderr); sys.exit(5)
+    if cmd == "start": s["active"] = True
+    elif cmd == "stop": s["active"] = False
+    elif cmd == "enable": s["enabled"] = True
+    elif cmd == "disable": s["enabled"] = False
+st_file.write_text(json.dumps(st, indent=1))

@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Test double for the spicetify CLI (from Crimson Desktop's tests; adds FAKE_SPICETIFY_FAIL_APPLY), modelled on spicetify/cli source (config.go arrayType,
+backup.go, status/spotify). Implements: -v, config [k v ...], backup, apply, restore.
+State: $XDG_CONFIG_HOME/spicetify/config-xpui.ini, $XDG_STATE_HOME/spicetify/Backup.
+'apply' writes Apps/xpui/{user.css, colors.css, extensions/, spicetify-routes-<app>.js/.json}
+like the real tool (src/cmd/apply.go RefreshApps, src/apply/apply.go UserCSS)."""
+
+import configparser
+import os
+import shutil
+import sys
+from pathlib import Path
+
+HOME = Path.home()
+CFG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config") / "spicetify"
+BACKUP = Path(os.environ.get("XDG_STATE_HOME") or HOME / ".local" / "state") / "spicetify" / "Backup"
+INI = CFG / "config-xpui.ini"
+LOG = HOME / "fake-spicetify.log"
+
+
+def load():
+    cp = configparser.ConfigParser(interpolation=None)
+    cp.optionxform = str
+    if INI.exists():
+        cp.read(INI)
+    for sec, keys in {"Setting": {"spotify_path": "", "prefs_path": "", "current_theme": "", "color_scheme": "",
+                                  "inject_theme_js": "1", "inject_css": "1", "replace_colors": "1", "overwrite_assets": "0"},
+                      "Preprocesses": {"expose_apis": "1"},
+                      "AdditionalOptions": {"extensions": "", "custom_apps": ""},
+                      "Backup": {"version": "", "with": ""}}.items():
+        if not cp.has_section(sec):
+            cp.add_section(sec)
+        for k, v in keys.items():
+            cp[sec].setdefault(k, v)
+    return cp
+
+
+def save(cp):
+    CFG.mkdir(parents=True, exist_ok=True)
+    with open(INI, "w") as f:
+        cp.write(f)
+
+
+def prefs_version(cp):
+    try:
+        for line in Path(cp["Setting"]["prefs_path"]).read_text().splitlines():
+            if line.startswith("app.last-launched-version="):
+                return line.split("=", 1)[1].strip('"')
+    except OSError:
+        pass
+    return ""
+
+
+def apps(cp):
+    p = cp["Setting"]["spotify_path"]
+    if not p or not (Path(p) / "Apps").is_dir():
+        sys.exit("error: spotify_path is not a valid path")
+    return Path(p) / "Apps"
+
+
+def main(argv):
+    with open(LOG, "a") as f:
+        f.write(" ".join(argv) + "\n")
+    if argv == ["-v"]:
+        print("2.44.0")
+        return
+    cp = load()
+    if argv and argv[0] == "config":
+        args = argv[1:]
+        if not args:
+            save(cp)
+            for s in cp.sections():
+                for k, v in cp[s].items():
+                    print(f"{k:30}{v}")
+            return
+        while len(args) >= 2:
+            k, v = args[0], args[1]
+            args = args[2:]
+            if k in ("extensions", "custom_apps"):
+                cur = [x for x in cp["AdditionalOptions"][k].split("|") if x]
+                for item in v.split("|"):
+                    if item.endswith("-"):
+                        if item[:-1] not in cur:
+                            print(f"warning: {item[:-1]} is not on the list.")
+                            continue
+                        cur.remove(item[:-1])
+                    elif item in cur:
+                        print(f"warning: {item} is already in the list.")
+                    else:
+                        cur.append(item)
+                cp["AdditionalOptions"][k] = "|".join(cur)
+            elif k in ("spotify_path", "prefs_path", "current_theme", "color_scheme"):
+                cp["Setting"][k] = v
+            elif k in cp["Setting"]:
+                cp["Setting"][k] = v
+            else:
+                sys.exit(f"error: unknown config {k}")
+        save(cp)
+        return
+    for c in argv:
+        a = apps(cp)
+        if c == "backup":
+            spa = list(a.glob("*.spa"))
+            if not spa:
+                sys.exit("error: Spotify is not in stock state, cannot back up")
+            BACKUP.mkdir(parents=True, exist_ok=True)
+            for f in spa:
+                shutil.copy2(f, BACKUP / f.name)
+            cp["Backup"]["version"] = prefs_version(cp)
+            save(cp)
+            print("backup done")
+        elif c == "apply":
+            if os.environ.get("FAKE_SPICETIFY_FAIL_APPLY"):
+                sys.exit("error: Spotify version not supported by this Spicetify version (test)")
+            if not any(BACKUP.glob("*.spa")):
+                sys.exit('error: no backup found, run "spicetify backup apply"')
+            for f in a.glob("*.spa"):
+                f.unlink()
+            x = a / "xpui"
+            if x.exists():
+                shutil.rmtree(x)
+            (x / "extensions").mkdir(parents=True)
+            (x / "index.html").write_text("<html>xpui</html>")
+            theme = cp["Setting"]["current_theme"]
+            if theme:
+                tdir = CFG / "Themes" / theme
+                if not tdir.is_dir():
+                    sys.exit(f"error: theme {theme} not found")
+                shutil.copy(tdir / "user.css", x / "user.css")
+                (x / "colors.css").write_text(":root {}")
+                if cp["Setting"]["inject_theme_js"] == "1" and (tdir / "theme.js").exists():
+                    shutil.copy(tdir / "theme.js", x / "extensions" / "theme.js")
+            for e in filter(None, cp["AdditionalOptions"]["extensions"].split("|")):
+                (x / "extensions" / e).write_text(f"// {e}")
+            for app in filter(None, cp["AdditionalOptions"]["custom_apps"].split("|")):
+                src = CFG / "CustomApps" / app
+                if not src.is_dir():
+                    sys.exit(f"error: custom app {app} not found")
+                (x / f"spicetify-routes-{app}.js").write_text((src / "index.js").read_text())
+                (x / f"spicetify-routes-{app}.json").write_text((src / "manifest.json").read_text())
+            print("apply done")
+        elif c == "restore":
+            if not any(BACKUP.glob("*.spa")):
+                sys.exit("error: no backup to restore")
+            x = a / "xpui"
+            if x.exists():
+                shutil.rmtree(x)
+            for f in BACKUP.glob("*.spa"):
+                shutil.copy2(f, a / f.name)
+            print("restore done")
+        else:
+            sys.exit(f"error: unknown command {c}")
+
+
+main(sys.argv[1:])

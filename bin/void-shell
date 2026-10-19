@@ -1,0 +1,41 @@
+#!/bin/sh
+# void-shell — the Command of Konsole's "VOID" profile.
+#
+# Starts YOUR login shell with VOID's layer on top: your own ~/.bashrc / ~/.zshrc / fish config
+# is loaded first and is never modified. Pure POSIX sh so it keeps working even if Python or the
+# project is broken: any problem falls straight through to your plain shell.
+#
+# Plain shell, no VOID layer:   VOID_PLAIN=1 konsole --profile VOID
+# Disable the layer for good:   touch ~/.config/void-desktop/shell.disabled
+
+HERE="$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)"
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}/void-desktop"
+GEN="${XDG_STATE_HOME:-$HOME/.local/state}/void-desktop/generated"
+
+pick_shell() {
+    s="${SHELL:-}"
+    [ -n "$s" ] && [ -x "$s" ] || s="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7)"
+    [ -n "$s" ] && [ -x "$s" ] && [ "$(basename "$s")" != void-shell ] || s=/bin/sh
+    printf '%s' "$s"
+}
+SH="$(pick_shell)"
+export SHELL="$SH"
+
+plain() { exec "$SH"; }
+[ -n "${VOID_PLAIN:-}" ] && plain
+[ -e "$CONF/shell.disabled" ] && plain
+if [ -z "$HERE" ] || [ ! -f "$HERE/config/shell/void-common.sh" ]; then plain; fi
+
+export VOID_HOME="$HERE"
+export VOID_TERMINAL=1
+export COLORTERM="${COLORTERM:-truecolor}"
+# settings written by `void activate` (startup fetch on/off, prompt on/off)
+# shellcheck disable=SC1091
+[ -f "$GEN/shell.env" ] && . "$GEN/shell.env"
+
+case "$(basename "$SH")" in
+    bash) exec "$SH" --rcfile "$HERE/config/shell/void.bashrc" -i ;;
+    zsh)  export VOID_USER_ZDOTDIR="${ZDOTDIR:-$HOME}"; export ZDOTDIR="$HERE/config/shell/zsh"; exec "$SH" -i ;;
+    fish) exec "$SH" -i -C "source '$HERE/config/shell/void.fish'" ;;
+    *)    plain ;;
+esac

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+echo "plasma-apply-desktoptheme $*" >> "$HOME/stub-calls.log"
+[ "${STUB_FAIL:-}" = desktoptheme ] && { echo "stub failure" >&2; exit 1; }
+exec "$(dirname "$(readlink -f "$0")")/kconfig_stub.py" --file plasmarc --group Theme --key name "$1"

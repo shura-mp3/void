@@ -1,0 +1,80 @@
+# VOID configuration  (~/.config/void-desktop/config.toml — `void install` copies this file there)
+# Every key is optional; a missing key uses the default shown here.
+# After editing: `void stop && void launch` (dashboard) or `void activate` (desktop look).
+
+[spotify]
+# MPRIS player names in priority order. Add "*" to fall back to any MPRIS player.
+players = ["spotify"]
+# Seconds between position re-reads while playing (catches seeks & drift).
+resync_interval = 1.5
+
+[lyrics]
+# Global latency compensation in ms. Positive = lyrics appear EARLIER. Per-track: +/- in the music pane.
+latency_ms = 0
+# Your own "Artist - Title.lrc" files are checked first (also ~/.config/void-desktop/lyrics/).
+local_dirs = ["~/Music/Lyrics", "~/Music/lyrics", "~/.lyrics"]
+# LRCLIB (https://lrclib.net): free, open lyrics database, no account or key.
+lrclib = true
+lrclib_url = "https://lrclib.net"
+duration_tolerance = 3
+negative_cache_hours = 24
+# Reuse lyrics Crimson Desktop already downloaded (read-only) before asking LRCLIB.
+use_crimson_cache = true
+
+[audio]
+enabled = true
+# "system" = everything you hear; "spotify" = experimental, Spotify's PipeWire stream only.
+source = "system"
+bars = 64
+cava_binary = "cava"
+
+[dashboard]
+# "auto" = right-most monitor by KScreen position, or a connector name such as "DP-2".
+monitor = "auto"
+# minimal | balanced | showcase   (switch live: void profile <name>)
+performance = "balanced"
+# When GameMode reports a game: "minimal" or "ignore".
+gamemode_action = "minimal"
+load_threshold = 0.9
+# Pane programs: "auto" uses the external tool when installed, else VOID's built-in one.
+system_monitor = "auto"   # auto | btop | builtin
+clock = "builtin"          # builtin | tty-clock
+rain = "builtin"           # builtin | cmatrix
+terminal = "auto"          # auto | konsole | alacritty
+
+[konsole]
+# Make "VOID" Konsole's default profile while VOID is active (restored on deactivate).
+set_default_profile = true
+# Show the Geass fastfetch once when a VOID Konsole window opens.
+startup_fetch = true
+
+[kde]
+color_scheme = true
+plasma_style = true
+window_decoration = true
+wallpaper = true
+lockscreen = true
+# "auto" = a monochrome cursor theme that is already installed; "" = leave the cursor alone.
+cursor = "auto"
+dashboard_window_rule = true
+
+[wallpaper]
+source_dir = "~/Downloads/home/jan/Downloads/pack 1"
+# Force a specific file instead of the automatic ranking.
+pick = ""
+
+[spicetify]
+enabled = true
+bridge = true
+# Crimson uses 47811; VOID never shares it.
+bridge_port = 47812
+allowed_origins = ["https://xpui.app.spotify.com"]
+# Album art stays in colour (content, not chrome). true = grayscale artwork in Spotify.
+grayscale_art = false
+full_app_display = true
+custom_app = true
+
+[crimson]
+project_dir = "~/Projects/crimson-desktop"
+# Pause Crimson's services while VOID is active (one Spotify watcher, one appearance manager).
+pause_services = true

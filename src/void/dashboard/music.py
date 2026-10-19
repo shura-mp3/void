@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from .. import config, lrc
 from . import bigfont
 from .corelink import CoreLink
-from .term import BOLD, Screen, center, clip, fg, run_safely, width, wrap
+from .term import BOLD, Screen, center, clip, fg, run_safely, width
 
 SPARK = " ▁▂▃▄▅▆▇█"
 PROFILES = ["minimal", "balanced", "showcase"]

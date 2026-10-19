@@ -148,10 +148,9 @@ def btop_theme() -> str:
     return "\n".join([f"# VOID — btop theme. {HEADER}"] + [f'theme[{k}]="{v}"' for k, v in kv.items()]) + "\n"
 
 
-def alacritty_theme() -> str:
-    p, t = pal(), load()["terminal"]
-    lines = [f"# VOID — Alacritty theme. {HEADER}", "# Use it with: [general] import = [\"~/.config/alacritty/void.toml\"]", "",
-             "[colors.primary]", f'background = "{p["background"]}"', f'foreground = "{p["text"]}"',
+def alacritty_colors() -> list[str]:
+    p = pal()
+    lines = ["[colors.primary]", f'background = "{p["background"]}"', f'foreground = "{p["text"]}"',
              f'bright_foreground = "{p["highlight"]}"', f'dim_foreground = "{p["muted"]}"', "",
              "[colors.cursor]", f'text = "{p["background"]}"', f'cursor = "{p["highlight"]}"', "",
              "[colors.selection]", f'text = "{p["background"]}"', f'background = "{p["text"]}"', ""]
@@ -159,6 +158,13 @@ def alacritty_theme() -> str:
         lines.append(f"[colors.{sect}]")
         lines += [f'{n} = "{ansi(i + off)}"' for i, n in enumerate(ANSI_ORDER)]
         lines.append("")
+    return lines
+
+
+def alacritty_theme() -> str:
+    t = load()["terminal"]
+    lines = [f"# VOID — Alacritty theme. {HEADER}", "# Use it with: [general] import = [\"~/.config/alacritty/void.toml\"]", ""]
+    lines += alacritty_colors()
     lines += ["[window]", f"opacity = {t['opacity']}", f"padding = {{ x = {t['padding']}, y = {t['padding']} }}", "",
               "[font]", f"size = {float(t['font_size'])}", f'normal = {{ family = "{t["font"]}" }}', ""]
     return "\n".join(lines)

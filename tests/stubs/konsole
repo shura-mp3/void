@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Test double: records how it was started and stays alive like a terminal window.
+echo "konsole $*" >> "$HOME/stub-calls.log"
+exec -a konsole sleep 300

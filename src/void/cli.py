@@ -5,7 +5,7 @@
   panes          music · clock · rain · sysmon · fetch · pane <name>
   look           profile minimal|balanced|showcase · tokens build|check|contrast
   system         inspect · install · health · monitors · wallpaper · core
-  apps           konsole apply|remove|status · spotify inspect|status|apply|revert · autostart on|off|status
+  apps           konsole apply|status · spotify inspect|status|apply|revert · autostart on|off|status
 """
 
 from __future__ import annotations

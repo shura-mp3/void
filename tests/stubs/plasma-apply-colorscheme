@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+"""Test double: records the scheme (and accent) in kdeglobals like the real tool's visible effect."""
+import os, subprocess, sys
+args = sys.argv[1:]
+accent = None
+if "--accent-color" in args:
+    i = args.index("--accent-color"); accent = args[i + 1]; del args[i:i + 2]
+name = args[-1]
+if os.environ.get("STUB_FAIL") == "colorscheme":
+    sys.exit("stub failure")
+here = os.path.dirname(os.path.realpath(__file__))
+kr, kw = os.path.join(here, "kreadconfig6"), os.path.join(here, "kwriteconfig6")
+cur = subprocess.run([kr, "--file", "kdeglobals", "--group", "General", "--key", "ColorScheme", "--default", ""],
+                     capture_output=True, text=True).stdout.strip()
+with open(os.path.join(os.environ["HOME"], "stub-calls.log"), "a") as f:
+    f.write("plasma-apply-colorscheme " + " ".join(sys.argv[1:]) + "\n")
+if cur == name and accent is None:
+    print(f"The color scheme {name} is already set"); sys.exit(0)
+subprocess.run([kw, "--file", "kdeglobals", "--group", "General", "--key", "ColorScheme", name], check=True)
+if accent:
+    rgb = ",".join(str(int(accent.lstrip("#")[i:i + 2], 16)) for i in (0, 2, 4))
+    subprocess.run([kw, "--file", "kdeglobals", "--group", "General", "--key", "AccentColor", rgb], check=True)
+print(f"Successfully applied the color scheme {name} to your current Plasma session")

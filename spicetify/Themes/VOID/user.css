@@ -1,0 +1,239 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   VOID Spotify — Spicetify theme (monochrome)
+   Colours come from color.ini (generated from VOID's config/tokens.toml) as --spice-* variables.
+   This file adds structure only: hairline frames, row/card states, monochrome accents, typography
+   for small labels, lyrics, Full App Display. Album artwork keeps its colour unless
+   "grayscale_art" is enabled (theme.js adds .void-grayscale-art to <html>).
+
+   Classes on <html>, set live by theme.js from void-core (no Spotify restart):
+     .void-profile-minimal | .void-profile-balanced | .void-profile-showcase
+     .void-reduce-effects   (minimal profile or GameMode)   .void-grayscale-art
+   Selectors are Spotify class names that Spicetify maps and maintained themes rely on; when a
+   Spotify redesign renames one, that rule simply stops matching (plainer look, never breakage).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --void-hair: rgba(var(--spice-rgb-border-inactive), 1);
+  --void-hair-hot: rgba(var(--spice-rgb-border-active), 0.8);
+  --void-radius: 2px;
+  --void-mono: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+  --void-ease: 120ms ease-out;
+}
+
+/* Spotify's own "bright accent" (green) tokens → VOID white-on-black */
+.encore-dark-theme,
+.encore-dark-theme .encore-base-set,
+.encore-dark-theme .encore-muted-accent-set {
+  --text-bright-accent: var(--spice-text) !important;
+  --essential-bright-accent: var(--spice-text) !important;
+  --decorative-base: var(--spice-text) !important;
+}
+.encore-dark-theme .encore-bright-accent-set {
+  --background-base: var(--spice-play-button) !important;
+  --background-highlight: var(--spice-text) !important;
+  --background-press: var(--spice-subtext) !important;
+  --background-elevated-base: var(--spice-play-button) !important;
+  --text-base: var(--spice-main) !important;
+  --text-subdued: var(--spice-main) !important;
+  --essential-base: var(--spice-main) !important;
+}
+
+/* ── shell: rectangular hairline panels ──────────────────────────────────── */
+.Root__nav-bar,
+.Root__main-view,
+.Root__right-sidebar {
+  border: 1px solid var(--void-hair);
+  border-radius: var(--void-radius) !important;
+}
+.Root__globalNav { border-bottom: 1px solid var(--void-hair); }
+.Root__now-playing-bar { border-top: 1px solid var(--void-hair); }
+
+/* album/artist/playlist headers: drop the art-derived colour gradients */
+.main-entityHeader-backgroundColor,
+.main-entityHeader-overlay,
+.main-actionBarBackground-background,
+.main-topBar-background,
+.main-home-homeHeader,
+.x-entityHeader-overlay,
+.before-scroll .main-topBar-background {
+  background-color: var(--spice-main) !important;
+  background-image: none !important;
+}
+.main-entityHeader-container { border-bottom: 1px solid var(--void-hair); }
+
+/* ── typography: Spotify's font for reading, mono for small technical labels ─ */
+.main-entityHeader-title h1,
+.main-entityHeader-headerText h1 {
+  color: var(--spice-accent-active) !important;
+  letter-spacing: -0.02em;
+}
+.main-trackList-trackListHeader,
+.main-trackList-rowDuration,
+.main-trackList-rowSectionIndex,
+.main-entityHeader-metaData,
+.playback-bar__progress-time-elapsed,
+.main-playbackBarRemainingTime-container {
+  font-family: var(--void-mono) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.04em;
+}
+.main-trackList-trackListHeader {
+  text-transform: uppercase;
+  color: var(--spice-subtext) !important;
+  border-bottom: 1px solid var(--void-hair) !important;
+}
+
+/* ── navigation / library ───────────────────────────────────────────────── */
+.main-yourLibraryX-navLinkActive,
+.main-navBar-navBarLinkActive,
+.main-yourLibraryX-listItemActive {
+  color: var(--spice-accent-active) !important;
+  box-shadow: inset 2px 0 0 var(--spice-accent-active);
+}
+.main-yourLibraryX-listItem:hover { background-color: var(--spice-highlight) !important; }
+
+/* ── track rows ─────────────────────────────────────────────────────────── */
+.main-trackList-trackListRow {
+  border: 1px solid transparent;
+  border-radius: var(--void-radius);
+  transition: background-color var(--void-ease), border-color var(--void-ease);
+}
+.main-trackList-trackListRow:hover {
+  background-color: var(--spice-highlight) !important;
+  border-color: var(--void-hair);
+}
+.main-trackList-selected,
+.main-trackList-selected:hover {
+  background-color: var(--spice-highlight-elevated) !important;
+  border-color: var(--void-hair-hot);
+}
+.main-trackList-active .main-trackList-rowTitle,
+.main-trackList-active .main-trackList-rowSubTitle,
+.main-trackList-active .main-trackList-rowSectionIndex {
+  color: var(--spice-accent-active) !important;
+}
+.main-trackList-active { box-shadow: inset 2px 0 0 var(--spice-accent-active); }
+
+/* ── cards ──────────────────────────────────────────────────────────────── */
+.main-card-card {
+  background-color: var(--spice-card) !important;
+  border: 1px solid var(--void-hair);
+  border-radius: var(--void-radius) !important;
+  transition: border-color var(--void-ease), background-color var(--void-ease);
+}
+.main-card-card:hover { border-color: var(--void-hair-hot); background-color: var(--spice-highlight) !important; }
+.main-card-card img,
+.x-entityImage-imageContainer,
+.main-entityHeader-image { border-radius: var(--void-radius) !important; }
+
+/* ── buttons ────────────────────────────────────────────────────────────── */
+.main-playButton-PlayButton > span,
+.main-playButton-PlayButton button span {
+  background-color: var(--spice-play-button) !important;
+  color: var(--spice-main) !important;
+}
+.main-playButton-PlayButton:hover > span { background-color: var(--spice-text) !important; }
+button:focus-visible,
+a:focus-visible,
+[role="row"]:focus-visible {
+  outline: 1px solid var(--spice-accent-active) !important;
+  outline-offset: 2px;
+}
+.main-shuffleButton-button[aria-checked="true"],
+.main-repeatButton-button[aria-checked="true"],
+.main-repeatButton-button[aria-checked="mixed"] { color: var(--spice-accent-active) !important; }
+
+/* ── search ─────────────────────────────────────────────────────────────── */
+.x-searchInput-searchInputInput,
+.main-topBar-searchBar,
+input[role="combobox"] {
+  background-color: var(--spice-main-elevated) !important;
+  border: 1px solid var(--void-hair) !important;
+  border-radius: var(--void-radius) !important;
+  color: var(--spice-text) !important;
+}
+.x-searchInput-searchInputInput:focus,
+input[role="combobox"]:focus { border-color: var(--void-hair-hot) !important; }
+
+/* ── menus, dialogs, tooltips ───────────────────────────────────────────── */
+.main-contextMenu-menu,
+.GenericModal,
+.main-trackCreditsModal-container,
+.main-embedWidgetGenerator-container {
+  background-color: var(--spice-main-elevated) !important;
+  border: 1px solid var(--void-hair-hot) !important;
+  border-radius: var(--void-radius) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7) !important;
+}
+.main-contextMenu-menuItemButton:hover:not(.main-contextMenu-disabled) { background-color: var(--spice-highlight-elevated) !important; }
+.main-contextMenu-menuItemButton:hover:not(.main-contextMenu-disabled) span { color: var(--spice-accent-active) !important; }
+hr, .main-contextMenu-dividerAfter::after { border-color: var(--void-hair) !important; }
+
+/* ── now-playing bar & sliders ──────────────────────────────────────────── */
+.main-nowPlayingBar-container { background-color: var(--spice-player) !important; }
+.main-nowPlayingBar-left img { border: 1px solid var(--void-hair); border-radius: var(--void-radius) !important; }
+[data-testid="control-button-playpause"] {
+  background-color: var(--spice-play-button) !important;
+  color: var(--spice-main) !important;
+  transition: background-color var(--void-ease);
+}
+[data-testid="control-button-playpause"]:hover { background-color: var(--spice-text) !important; }
+.x-progressBar-progressBarBg { background-color: var(--spice-button-disabled) !important; }
+.x-progressBar-fillColor { background-color: var(--spice-playback-bar) !important; }
+.playback-bar:hover .x-progressBar-fillColor,
+.main-nowPlayingBar-right:hover .x-progressBar-fillColor { background-color: var(--spice-accent-active) !important; }
+.progress-bar__slider { background-color: var(--spice-accent-active) !important; box-shadow: 0 0 0 2px var(--spice-main); }
+.x-toggle-indicatorWrapper { background-color: var(--spice-button-disabled) !important; }
+input:checked ~ .x-toggle-indicatorWrapper { background-color: var(--spice-subtext) !important; }
+
+/* ── queue / right sidebar ──────────────────────────────────────────────── */
+.Root__right-sidebar [data-testid="queue-page"] [aria-current="true"],
+.main-nowPlayingView-section { border: 1px solid var(--void-hair); border-radius: var(--void-radius); }
+
+/* ── Spotify's own lyrics view ──────────────────────────────────────────── */
+.lyrics-lyrics-background,
+.lyrics-lyrics-container,
+[data-testid="lyrics-container"] {
+  --lyrics-color-background: var(--spice-main) !important;
+  --lyrics-color-active: var(--spice-accent-active) !important;
+  --lyrics-color-inactive: var(--spice-misc) !important;
+  --lyrics-color-passed: var(--spice-subtext) !important;
+  --lyrics-color-messaging: var(--spice-subtext) !important;
+  background-color: var(--spice-main) !important;
+}
+
+/* ── scrollbars ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: var(--void-hair); border: 2px solid var(--spice-main); border-radius: 1px; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--spice-subtext); }
+
+/* ── Full App Display (Spicetify's bundled immersive now-playing) ───────── */
+#full-app-display #fad-background { filter: grayscale(1) brightness(0.32) !important; }
+#full-app-display #fad-art-image { border: 1px solid var(--void-hair-hot); border-radius: var(--void-radius) !important; box-shadow: none !important; }
+#full-app-display #fad-title { color: var(--spice-accent-active) !important; letter-spacing: -0.02em; }
+#full-app-display #fad-artist,
+#full-app-display #fad-album { color: var(--spice-subtext) !important; }
+#full-app-display #fad-release-date,
+#full-app-display #fad-elapsed,
+#full-app-display #fad-duration { font-family: var(--void-mono) !important; color: var(--spice-subtext) !important; }
+#full-app-display #fad-progress { background-color: var(--void-hair) !important; }
+#full-app-display #fad-progress-inner { background-color: var(--spice-accent-active) !important; box-shadow: none !important; }
+
+/* ── optional grayscale artwork (album art is content: colour by default) ── */
+.void-grayscale-art .main-coverSlotCollapsed-container img,
+.void-grayscale-art .main-nowPlayingWidget-coverArt img,
+.void-grayscale-art .main-entityHeader-image,
+.void-grayscale-art .main-card-imageContainer img,
+.void-grayscale-art .main-trackList-rowImage,
+.void-grayscale-art .cover-art img,
+.void-grayscale-art #fad-art-image,
+.void-grayscale-art .void-art { filter: grayscale(1) contrast(1.05); }
+
+/* ── reduced effects: minimal profile, GameMode, or the system setting ─── */
+.void-reduce-effects *,
+.void-reduce-effects *::before,
+.void-reduce-effects *::after { transition: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation-duration: 0.01ms !important; }
+}

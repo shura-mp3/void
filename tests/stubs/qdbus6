@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Test double: Plasma desktop scripting runs the REAL script in node against a fake desktop API
+# ($HOME/plasma-desktops.json); every other call is only logged.
+echo "qdbus6 $1 $2 $3" >> "$HOME/stub-calls.log"
+if [ "$3" = org.kde.PlasmaShell.evaluateScript ]; then
+    exec node "$(dirname "$(readlink -f "$0")")/plasma_eval.js" "$4"
+fi
+exit 0

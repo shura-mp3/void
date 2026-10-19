@@ -62,7 +62,7 @@ def from_text(raw: str) -> list[dict]:
 
 def detect(cfg: dict | None = None) -> dict:
     cfg = cfg or config.load()
-    res = {"outputs": [], "target": None, "method": None, "arrangement": "none", "notes": []}
+    res = {"outputs": [], "target": None, "left": None, "method": None, "arrangement": "none", "notes": []}
     if not ui.have("kscreen-doctor"):
         res["error"] = "kscreen-doctor not found (part of Plasma's kscreen package)"
         return res
@@ -93,6 +93,9 @@ def detect(cfg: dict | None = None) -> dict:
         elif res["arrangement"] == "vertical":
             res["notes"].append("monitors are stacked, not side by side — using the lower one")
     res["target"] = target
+    # the physical left monitor (by position) for the second wallpaper; None with a single display
+    others = [o for o in enabled if target and o["name"] != target["name"]]
+    res["left"] = min(others, key=lambda o: (o["x"], o["y"])) if others else None
     if target and (target["width"], target["height"]) != TARGET:
         res["notes"].append(f"{target['name']} runs {target['width']}x{target['height']} (VOID is tuned for 1920x1080 "
                             "and adapts; your display settings are left as they are)")
@@ -110,9 +113,10 @@ def print_table(res: dict) -> None:
         ui.bad(res["error"])
         return
     tgt = (res.get("target") or {}).get("name")
+    lft = (res.get("left") or {}).get("name")
     print(f"  detected with {res['method']}   arrangement: {res['arrangement']}")
     for o in res["outputs"]:
-        role = "DASHBOARD →" if o["name"] == tgt else ""
+        role = "RIGHT/DASH →" if o["name"] == tgt else "LEFT →" if o["name"] == lft else ""
         print(f"  {role:12}{o['name']:10} {o['width']}x{o['height']}@{o['refresh']:<7} logical {o['logical_width']}x"
               f"{o['logical_height']:<5} at {o['x']},{o['y']}  scale {o['scale']}{'  primary' if o['primary'] else ''}"
               f"{'' if o['enabled'] else '  (disabled)'}")

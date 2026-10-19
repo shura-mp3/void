@@ -192,6 +192,73 @@ def tmux_colors() -> str:
     ])
 
 
+def kitty_theme() -> str:
+    """Kitty theme template; @VOID_BIN@ / @VOID_SHELL@ become absolute paths when installed.
+
+    A port of Crimson Desktop's themes/kitty/crimson.conf: same layouts, window behaviour and
+    shortcuts, VOID's monochrome palette, no blur, and Crimson's music shortcuts pointed at VOID.
+    """
+    p, t = pal(), load()["terminal"]
+    lines = [
+        f"# VOID — Kitty configuration. {HEADER}",
+        "# Installed as ~/.config/kitty/void.conf. Used by `void kitty …` (your kitty.conf stays untouched),",
+        "# and — while VOID is active — included at the END of kitty.conf so every Kitty window is VOID.", "",
+        "# fonts (readable mono; ligatures off under the cursor)",
+        f"font_family      {t['font']}", "bold_font        auto", "italic_font      auto",
+        f"font_size        {float(t['font_size'])}", "disable_ligatures cursor", "",
+        "# window (from Crimson: layouts, remembered size, close confirmation)",
+        f"window_padding_width   {t['padding'] + 4} {t['padding'] + 6}", "hide_window_decorations no",
+        "confirm_os_window_close 1", "remember_window_size  yes", "initial_window_width  110c",
+        "initial_window_height 32c", "enabled_layouts splits,stack,tall", "window_border_width 1pt",
+        f"active_border_color   {p['secondary_text']}", f"inactive_border_color {p['border']}",
+        f"bell_border_color     {p['highlight']}", "inactive_text_alpha   0.82", "",
+        "# opacity: no blur (VOID keeps text sharp). Profiles rewrite void-profile.conf",
+        "# (minimal = opaque); ctrl+shift+a then m/l/1/d adjusts it live.",
+        f"background_opacity {t['opacity']}", "background_blur 0", "dynamic_background_opacity yes",
+        "include void-profile.conf", "",
+        f"cursor                {p['highlight']}", f"cursor_text_color     {p['background']}",
+        "cursor_shape          block", "cursor_blink_interval 0",
+        "# needs kitty 0.37+ (older versions ignore these two lines)",
+        "cursor_trail          1", "cursor_trail_decay    0.08 0.3", "",
+        f"foreground            {p['text']}", f"background            {p['background']}",
+        f"selection_foreground  {p['background']}", f"selection_background  {p['text']}",
+        f"url_color             {p['highlight']}", "url_style             single",
+        f"mark1_background      {p['text']}", f"mark1_foreground      {p['background']}", "",
+    ]
+    lines += [f"color{i:<2}  {ansi(i)}" for i in range(16)]
+    lines += [
+        "", "# tab bar (Crimson used slanted powerline in crimson; VOID uses flat hairline separators)",
+        "tab_bar_edge            top", "tab_bar_style           separator", 'tab_separator           " │ "',
+        "tab_bar_margin_width    6.0", 'tab_title_template      " {index} // {title[:28]} "',
+        f"active_tab_foreground   {p['highlight']}", f"active_tab_background   {p['elevated']}",
+        "active_tab_font_style   bold", f"inactive_tab_foreground {p['muted']}",
+        f"inactive_tab_background {p['background']}", f"tab_bar_background      {p['background']}", "",
+        "# VOID shell layer — your shell rc loads first (plain shell: VOID_PLAIN=1 kitty)",
+        "shell @VOID_SHELL@", "",
+        "# shortcuts (Crimson's set)",
+        "map ctrl+shift+enter    launch --cwd=current --location=vsplit",
+        "map ctrl+shift+minus    launch --cwd=current --location=hsplit",
+        "map ctrl+shift+t        new_tab_with_cwd",
+        "map ctrl+shift+left     neighboring_window left",
+        "map ctrl+shift+right    neighboring_window right",
+        "map ctrl+shift+up       neighboring_window up",
+        "map ctrl+shift+down     neighboring_window down",
+        "map ctrl+shift+z        toggle_layout stack",
+        "map ctrl+shift+a>m      set_background_opacity +0.05",
+        "map ctrl+shift+a>l      set_background_opacity -0.05",
+        "map ctrl+shift+a>1      set_background_opacity 1",
+        "map ctrl+shift+a>d      set_background_opacity default",
+        "map ctrl+shift+f5       load_config_file", "",
+        "# Crimson's music shortcuts, now VOID (one backend: void-core)",
+        'map ctrl+shift+l        launch --type=os-window --title "VOID // LYRICS" --os-window-class void-lyrics @VOID_BIN@ lyrics',
+        "map ctrl+shift+v>c      launch --type=overlay @VOID_BIN@ cava",
+        "map ctrl+shift+i        launch --type=overlay --hold @VOID_BIN@ fetch",
+        "map ctrl+shift+m        launch --type=overlay @VOID_BIN@ music",
+        "map ctrl+shift+d        launch --type=background @VOID_BIN@ launch", "",
+    ]
+    return "\n".join(lines)
+
+
 def cava_config() -> str:
     p = pal()
     return "\n".join([
@@ -250,6 +317,7 @@ OUTPUTS = {
     "config/alacritty/void.toml": alacritty_theme,
     "config/tmux/colors.conf": tmux_colors,
     "config/cava/void": cava_config,
+    "config/kitty/void.conf.in": kitty_theme,
     "config/fastfetch/void.jsonc.in": fastfetch_config,
     "spicetify/Themes/VOID/color.ini": spicetify_colors,
 }

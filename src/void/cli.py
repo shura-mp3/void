@@ -2,10 +2,10 @@
 
   switching      activate · deactivate · restore [--list] · status
   dashboard      launch · stop · dashboard build|attach|respawn|kill|status
-  panes          music · clock · rain · sysmon · fetch · pane <name>
+  panes          music · lyrics · clock · rain · sysmon · fetch · cava · pane <name>
   look           profile minimal|balanced|showcase · tokens build|check|contrast
   system         inspect · install · health · monitors · wallpaper · core
-  apps           konsole apply|status · spotify inspect|status|apply|revert · autostart on|off|status
+  apps           kitty [shell|lyrics|music|cava|fetch|dashboard] · konsole apply|status · spotify inspect|status|apply|revert · autostart on|off|status
 """
 
 from __future__ import annotations
@@ -23,9 +23,17 @@ def main(argv: list[str]) -> int:
         sys.argv = ["void-core", *rest]
         core.main()
         return 0
-    if cmd in ("music", "clock", "rain", "sysmon", "fetch"):
+    if cmd in ("music", "lyrics", "clock", "rain", "sysmon", "fetch"):
         import importlib
         return importlib.import_module(f".dashboard.{cmd}", __package__).main(rest)
+    if cmd == "cava":
+        import os
+        import shutil
+        from . import paths
+        if not shutil.which("cava"):
+            print("cava is not installed (sudo dnf install cava)")
+            return 1
+        os.execvp("cava", ["cava", "-p", str(paths.CONFIG_SRC / "cava" / "void")])
     if cmd == "pane":
         from .dashboard import session
         return session.run_pane(rest[0] if rest else "")

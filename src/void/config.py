@@ -56,13 +56,17 @@ DEFAULTS: dict[str, Any] = {
         "system_monitor": "auto",   # auto | btop | builtin
         "clock": "builtin",          # builtin | tty-clock
         "rain": "builtin",           # builtin | cmatrix
-        "terminal": "auto",          # auto | konsole | alacritty
+        "terminal": "auto",          # auto (Konsole, else Kitty, else Alacritty) | konsole | kitty | alacritty
     },
     "konsole": {
         # Make "VOID" Konsole's default profile while VOID is active (restored on deactivate).
         "set_default_profile": True,
         # Show the Geass fastfetch once when a VOID Konsole session opens.
         "startup_fetch": True,
+    },
+    "kitty": {
+        # Theme Kitty too (when installed): VOID's block goes at the end of kitty.conf while active.
+        "enabled": True,
     },
     "kde": {
         "color_scheme": True,
@@ -73,11 +77,16 @@ DEFAULTS: dict[str, Any] = {
         # "auto" = a monochrome cursor theme that is already installed (Breeze), or "" to leave it.
         "cursor": "auto",
         "dashboard_window_rule": True,
+        # Meta+Alt+D/L/P/[/] go to VOID while it is active (Crimson's bindings set aside, then restored).
+        "shortcuts": True,
     },
     "wallpaper": {
         "source_dir": "~/Downloads/home/jan/Downloads/pack 1",
-        # Force a specific file instead of the automatic ranking.
+        # Force files instead of the automatic ranking: "pick" = the same image on every monitor,
+        # or one per side. Empty = automatic (panorama, matched pair or one image, from the pack).
         "pick": "",
+        "pick_left": "",
+        "pick_right": "",
     },
     "spicetify": {
         "enabled": True,

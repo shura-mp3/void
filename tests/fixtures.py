@@ -106,9 +106,22 @@ def crimson_home(home: Path) -> None:
     write_ini(kfile(home, "kwinrulesrc"), {"General": {"count": "1", "rules": "8d244560-c71b-4a1e-9f2b-0b080dc7a110"},
                                            "8d244560-c71b-4a1e-9f2b-0b080dc7a110": {"Description": "Crimson Dashboard", "wmclass": "crimson-dashboard"}})
     write_ini(kfile(home, "konsolerc"), {"Desktop Entry": {"DefaultProfile": "Crimson OS.profile"}, "MainWindow": {"MenuBar": "Disabled"}})
+    # Crimson's global shortcuts as its apply-theme.sh writes them
+    write_ini(kfile(home, "kglobalshortcutsrc"), {
+        "kwin": {"Overview": "Meta+W,Meta+W,Toggle Overview"},
+        "services][crimson-dashboard-toggle.desktop": {"_launch": "Meta+Alt+D"},
+        "services][crimson-lyrics.desktop": {"_launch": "Meta+Alt+L"},
+        "services][crimson-profile-cycle.desktop": {"_launch": "Meta+Alt+P"},
+        "services][crimson-offset-plus.desktop": {"_launch": "Meta+Alt+]"},
+        "services][crimson-offset-minus.desktop": {"_launch": "Meta+Alt+["}})
     write_ini(kfile(home, "kscreenlockerrc"), {"Greeter": {"WallpaperPlugin": "org.kde.image"},
                                                "Greeter][Wallpaper][org.kde.image][General": {"Image": "file:///crimson/lock.jpg"}})
     desktops(home, "file:///crimson/left.jpg", "file:///crimson/right.jpg")
+    kd = home / ".config/kitty"
+    kd.mkdir(parents=True)
+    (kd / "kitty.conf").write_text("font_size 12\nmap ctrl+shift+e no_op\n\n"
+                                   "# Crimson Desktop theme (remove this line to disable)\ninclude crimson.conf\n")
+    (kd / "crimson.conf").write_text("background #0B080D\nmap ctrl+shift+l launch crimson-lyrics\n")
     (home / "systemd-state.json").write_text(json.dumps({
         "crimson-core.service": {"active": True, "enabled": True},
         "crimson-dashboard.service": {"active": True, "enabled": True}}))
@@ -148,7 +161,8 @@ def plasmashell(home: Path) -> subprocess.Popen:
 
 
 def snapshot(home: Path) -> dict:
-    files = ["kdeglobals", "plasmarc", "kcminputrc", "kwinrc", "breezerc", "kwinrulesrc", "konsolerc", "kscreenlockerrc"]
+    files = ["kdeglobals", "plasmarc", "kcminputrc", "kwinrc", "breezerc", "kwinrulesrc", "konsolerc", "kscreenlockerrc",
+             "kglobalshortcutsrc"]
     return {
         "ini": {f: read_ini(kfile(home, f)) for f in files},
         "desktops": json.loads((home / "plasma-desktops.json").read_text())["desktops"],
@@ -157,6 +171,12 @@ def snapshot(home: Path) -> dict:
         "spicetify": spicetify_ini(home),
         "xpui_css": (home / SPOTIFY_REL / "Apps/xpui/user.css").read_text() if (home / SPOTIFY_REL / "Apps/xpui/user.css").exists() else None,
         "spa": sorted(p.name for p in (home / SPOTIFY_REL / "Apps").glob("*.spa")),
+        # VOID's own void.conf stays installed after deactivate (like the Konsole profiles) — compare the rest
+        # VOID's own void.conf / void-profile.conf stay installed after deactivate (like the Konsole
+        # profiles; `void restore --uninstall` removes them) — everything else must come back
+        "kitty": {p.name: p.read_bytes() for p in sorted((home / ".config/kitty").glob("*"))
+                  if p.name not in ("void.conf", "void-profile.conf")} or None
+                 if (home / ".config/kitty").exists() else None,
     }
 
 

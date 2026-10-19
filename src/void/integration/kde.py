@@ -223,7 +223,7 @@ def dashboard_rule(geometry: dict) -> list[tuple[str, str, str, str]]:
     x, y, w, h = geometry["x"], geometry["y"], geometry["logical_width"], geometry["logical_height"]
     kv = [
         ("Description", "VOID dashboard on the right-hand monitor (VOID)"),
-        ("wmclass", ".*(konsole|alacritty|void-dashboard).*"), ("wmclassmatch", "3"), ("wmclasscomplete", "false"),
+        ("wmclass", ".*(konsole|kitty|alacritty|void-dashboard).*"), ("wmclassmatch", "3"), ("wmclasscomplete", "false"),
         ("title", DASH_TITLE), ("titlematch", "2"),
         ("position", f"{x},{y}"), ("positionrule", "3"),
         ("size", f"{w},{h}"), ("sizerule", "3"),

@@ -5,6 +5,7 @@
 #   config/btop/void.theme               config/alacritty/void.toml
 #   config/tmux/colors.conf              config/cava/void
 #   config/fastfetch/void.jsonc.in       spicetify/Themes/VOID/color.ini
+#   config/kitty/void.conf.in
 # The terminal programs (music/lyrics, clock, data rain, system monitor) read this file at runtime.
 # tests/test_tokens.py fails if any generated file is out of date or a colour outside this file appears.
 

@@ -27,13 +27,34 @@ def _monitors(argv):
 
 
 def _wallpaper(argv):
-    """void wallpaper [--pick FILE] — rank the pack and make the monochrome copies (does not set it)."""
-    from .. import config
-    from . import monitors, wallpaper
-    pick = argv[argv.index("--pick") + 1] if "--pick" in argv and argv.index("--pick") + 1 < len(argv) else None
-    res = wallpaper.prepare(config.load(), monitors.detect().get("target"), pick=pick, interactive=False)
+    """void wallpaper [--pick FILE | --left FILE --right FILE]   rank the pack, render both screens (sets nothing)
+    void wallpaper verify                                      read both wallpapers back from Plasma"""
+    import json
+    from .. import config, paths
+    from . import monitors, ui, wallpaper
+
+    def opt(name):
+        return argv[argv.index(name) + 1] if name in argv and argv.index(name) + 1 < len(argv) else ""
+    if argv and argv[0] == "verify":
+        try:
+            res = json.loads(paths.WALLPAPER_STATE.read_text())
+        except (OSError, ValueError):
+            ui.bad("no VOID wallpapers recorded yet (void wallpaper, then void activate)")
+            return 1
+        probs = wallpaper.verify(res)
+        for name, v in res.get("screens", {}).items():
+            print(f"  {name:10} at {v['x']},{v['y']}  {v['image']}")
+        for pr in probs:
+            ui.bad(pr)
+        if not probs:
+            ui.ok("Plasma shows the VOID wallpaper on every monitor")
+        return 1 if probs else 0
+    mon = monitors.detect()
+    monitors.print_table(mon)
+    res = wallpaper.prepare(config.load(), [o for o in mon["outputs"] if o["enabled"]], mon.get("target"),
+                            picks={"all": opt("--pick"), "left": opt("--left"), "right": opt("--right")}, interactive=False)
     if res:
-        print("  `void activate` sets it on the right-hand monitor (re-run activate after changing the pick)")
+        print("  `void activate` applies them (run it again after changing the pick while VOID is active)")
     return 0 if res else 1
 
 
@@ -50,6 +71,11 @@ def _konsole(argv):
     return 0
 
 
+def _kitty(argv):
+    from . import kitty
+    return kitty.main(argv)
+
+
 def _spotify(argv):
     from . import spotify
     return spotify.main(argv)
@@ -62,6 +88,8 @@ COMMANDS = {
     "launch": _switch("launch"),
     "stop": _switch("stop"),
     "profile": _switch("profile"),
+    "toggle": _switch("toggle"),
+    "offset": _switch("offset"),
     "autostart": _switch("autostart"),
     "status": _switch("status"),
     "inspect": _system("inspect"),
@@ -71,5 +99,6 @@ COMMANDS = {
     "monitors": _monitors,
     "wallpaper": _wallpaper,
     "konsole": _konsole,
+    "kitty": _kitty,
     "spotify": _spotify,
 }

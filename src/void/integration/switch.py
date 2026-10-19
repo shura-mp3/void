@@ -24,9 +24,9 @@ import tarfile
 import time
 from pathlib import Path
 
-from .. import client, config, paths
+from .. import client, config, paths, tokens
 from ..dashboard import session
-from . import files, kde, konsole, monitors, services, spotify, ui, wallpaper
+from . import files, kde, kitty, konsole, monitors, services, shortcuts, spotify, ui, wallpaper
 from .journal import ABSENT, HANDLERS, Journal, show
 
 DASH_PID = paths.STATE_DIR / "dashboard-window.pid"
@@ -35,7 +35,8 @@ BACKUPS = paths.STATE_DIR / "backups"
 # whole config files archived before every activation (last-resort safety net; `void restore --files`)
 CONFIG_FILES = [
     ".config/kdeglobals", ".config/kwinrc", ".config/kwinrulesrc", ".config/breezerc", ".config/plasmarc",
-    ".config/kcminputrc", ".config/kscreenlockerrc", ".config/konsolerc",
+    ".config/kcminputrc", ".config/kscreenlockerrc", ".config/konsolerc", ".config/kitty/kitty.conf",
+    ".config/kglobalshortcutsrc",
     ".config/plasma-org.kde.plasma.desktop-appletsrc", ".config/spicetify/config-xpui.ini",
     ".config/autostart",
 ]
@@ -100,7 +101,7 @@ def activate(argv: list[str]) -> int:
     print(f"  Crimson       : {'project found' if crim['project'] else 'project not found'}"
           f"{', services running (will be paused, then restored on deactivate)' if crim['running'] else ''}")
     print("  will apply    : VOID Monochrome colours (global — both monitors), Breeze style + window decoration,")
-    print("                  right-monitor wallpaper + lock screen, dashboard window rule, Konsole VOID profile,")
+    print("                  wallpapers on both monitors + lock screen, dashboard window rule, Konsole + Kitty,")
     print(f"                  void-core{', VOID Spotify theme' if cfg['spicetify'].get('enabled', True) and '--no-spotify' not in opts else ''}")
     print("  undo          : void deactivate   (or: void restore — to before VOID was ever used)")
     if not ui.ask("activate VOID now?", True):
@@ -151,11 +152,18 @@ def activate(argv: list[str]) -> int:
         monitors.print_table(mon)
         if target and k.get("wallpaper", True) and "--no-wallpaper" not in opts:
             if kde.plasma_running():
-                res = wallpaper.prepare(cfg, target)
+                outs = [o for o in mon["outputs"] if o["enabled"]]
+                res = wallpaper.prepare(cfg, outs, target)
                 if res:
-                    j.change("wallpaper", f"{target['x']},{target['y']}", wallpaper.plasma_value(res["image"]),
-                             "right-monitor wallpaper")
-                    ui.ok(f"wallpaper set on {target['name']} only (the left monitor keeps its own)")
+                    for name, v in res["screens"].items():
+                        role = "right / dashboard" if name == target["name"] else "left"
+                        j.change("wallpaper", f"{v['x']},{v['y']}", wallpaper.plasma_value(v["image"]),
+                                 f"{role} monitor wallpaper ({name})")
+                    problems = wallpaper.verify(res)
+                    if problems:
+                        raise RuntimeError("wallpaper not applied as expected: " + "; ".join(problems))
+                    ui.ok(f"wallpapers applied and read back from Plasma on {len(res['screens'])} monitor(s) "
+                          f"({res['mode']}): " + ", ".join(res["screens"]))
                     if k.get("lockscreen", True):
                         for f, g, key, v in kde.lockscreen_settings(res["lock"]):
                             j.change("kconfig", kde.kkey(f, g, key), v, "lock screen")
@@ -177,6 +185,21 @@ def activate(argv: list[str]) -> int:
         if cfg["konsole"].get("set_default_profile", True):
             j.change("kconfig", konsole.default_profile_key(), konsole.PROFILE, "Konsole default profile")
             ui.ok("new Konsole windows open the VOID profile (your other profiles are unchanged)")
+        if cfg["kitty"].get("enabled", True) and kitty.wanted():
+            ui.hdr("Kitty")
+            kitty.install()
+            j.change("kitty", str(kitty.CONF), True, "VOID Kitty theme")
+            kitty.reload()
+            ui.ok("Kitty: VOID theme included last in kitty.conf (Crimson's include stays; VOID's wins), "
+                  "VOID shell layer, Ctrl+Shift+L → void music")
+
+        if cfg["kde"].get("shortcuts", True):
+            ui.hdr("global shortcuts")
+            freed = shortcuts.apply(j)
+            if freed:
+                ui.ok("Crimson's keys set aside while VOID is active: " + ", ".join(freed))
+            ui.ok("Meta+Alt+D dashboard · Meta+Alt+L lyrics (Kitty) · Meta+Alt+P profile · Meta+Alt+[ / ] lyric timing")
+            ui.info("global shortcuts switch over completely after your next login (KDE reads them at login)")
 
         ui.hdr("void-core")
         services.install_units()
@@ -228,6 +251,7 @@ def deactivate(argv: list[str]) -> int:
     if had_spotify:
         ui.info("Spotify: " + (unpatched or spotify.after_revert()))
     kde.kwin_reconfigure()
+    kitty.reload()
     if fails:
         j.set_status("failed", error=f"{fails} setting(s) could not be restored")
         ui.bad(f"{fails} setting(s) could not be restored — fix the cause above, then run `void deactivate` again")
@@ -310,7 +334,7 @@ def _pid_alive(pid: int) -> bool:
         cmd = Path(f"/proc/{pid}/cmdline").read_bytes().decode(errors="replace")
     except OSError:
         return True
-    return "konsole" in cmd or "alacritty" in cmd
+    return any(t in cmd for t in ("konsole", "kitty", "alacritty"))
 
 
 def dashboard_window_pid() -> int | None:
@@ -330,8 +354,8 @@ def ensure_core() -> None:
         client.start_core()
 
 
-def launch(argv: list[str]) -> int:
-    cfg = config.load()
+def launch(argv: list[str], cfg: dict | None = None) -> int:
+    cfg = cfg or config.load()
     if "--autostart" in argv:
         if Journal().status != "active":
             return 0  # VOID not active: the login autostart does nothing
@@ -352,11 +376,19 @@ def launch(argv: list[str]) -> int:
     konsole.install()
     if term in ("auto", "konsole") and ui.have("konsole"):
         cmd = ["konsole", "--separate", "--hide-menubar", "--hide-tabbar", "--profile", "VOID Dashboard"]
+    elif term in ("auto", "kitty") and ui.have("kitty"):
+        t = tokens.load()["terminal"]
+        kitty.install()
+        confs = (["--config", str(kitty.CONF)] if kitty.CONF.exists() else []) + ["--config", str(kitty.THEME)]
+        cmd = ["kitty", *confs, "--class", "void-dashboard", "--title", kde.DASH_TITLE,
+               "-o", f"font_size={t['dashboard_font_size']}", "-o", "hide_window_decorations=yes",
+               "-o", "tab_bar_min_tabs=99", "-o", "window_padding_width=2",
+               str(paths.PROJECT_DIR / "bin" / "void"), "dashboard", "attach"]
     elif term in ("auto", "alacritty") and ui.have("alacritty"):
         cmd = ["alacritty", "--config-file", konsole.alacritty_dashboard_config(), "--class", "void-dashboard",
                "-e", str(paths.PROJECT_DIR / "bin" / "void"), "dashboard", "attach"]
     else:
-        ui.warn("no supported terminal (Konsole / Alacritty) found — attach by hand:  tmux -L void-desktop attach -t void")
+        ui.warn("no supported terminal (Konsole / Kitty / Alacritty) found — attach by hand:  tmux -L void-desktop attach -t void")
         return 1
     p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
     DASH_PID.parent.mkdir(parents=True, exist_ok=True)
@@ -384,8 +416,40 @@ def stop(argv: list[str]) -> int:
 
 
 # ════════════════════════════════════════════════════════════════════ profile / autostart / status
+def toggle(argv: list[str]) -> int:
+    """Show/hide the dashboard window (Meta+Alt+D). The panes and void-core keep running when hidden."""
+    pid = dashboard_window_pid()
+    if pid:
+        os.kill(pid, signal.SIGTERM)
+        DASH_PID.unlink(missing_ok=True)
+        ui.ok("dashboard hidden (void-core keeps running)")
+        return 0
+    return launch([])
+
+
+def offset(argv: list[str]) -> int:
+    """Lyric timing for the current track: void offset +100 | -100 | reset"""
+    arg = argv[0] if argv else ""
+    msg = {"cmd": "offset", "reset": True} if arg == "reset" else None
+    if msg is None:
+        try:
+            msg = {"cmd": "offset", "delta": int(arg)}
+        except ValueError:
+            print("usage: void offset +100 | -100 | reset")
+            return 2
+    r = client.request(msg, timeout=2)
+    if not r or not r.get("ok"):
+        ui.bad("no track playing, or void-core is not running")
+        return 1
+    ui.ok(f"lyric offset for this track: {r['offset_ms']:+d} ms")
+    return 0
+
+
 def profile(argv: list[str]) -> int:
     name = argv[0] if argv else ""
+    if name == "next":
+        order = list(config.PERFORMANCE)
+        name = order[(order.index(config.current_profile()) + 1) % len(order)]
     if name not in config.PERFORMANCE:
         print(f"current profile: {config.current_profile()}  (choose: {' | '.join(config.PERFORMANCE)})")
         return 0 if not name else 2
@@ -396,6 +460,9 @@ def profile(argv: list[str]) -> int:
         st.save()
     if session.exists():
         session.respawn()
+    if kitty.PROFILE.exists():
+        kitty.write_profile(name)
+        kitty.reload()
     ui.ok(f"profile: {name}  ({', '.join(f'{k}={v}' for k, v in config.PERFORMANCE[name].items())})")
     return 0
 

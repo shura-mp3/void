@@ -1,0 +1,103 @@
+# VOID — Kitty configuration. Generated from config/tokens.toml by `bin/void tokens build` — do not edit by hand.
+# Installed as ~/.config/kitty/void.conf. Used by `void kitty …` (your kitty.conf stays untouched),
+# and — while VOID is active — included at the END of kitty.conf so every Kitty window is VOID.
+
+# fonts (readable mono; ligatures off under the cursor)
+font_family      JetBrains Mono
+bold_font        auto
+italic_font      auto
+font_size        11.0
+disable_ligatures cursor
+
+# window (from Crimson: layouts, remembered size, close confirmation)
+window_padding_width   12 14
+hide_window_decorations no
+confirm_os_window_close 1
+remember_window_size  yes
+initial_window_width  110c
+initial_window_height 32c
+enabled_layouts splits,stack,tall
+window_border_width 1pt
+active_border_color   #AAAAAA
+inactive_border_color #333333
+bell_border_color     #F2F2F2
+inactive_text_alpha   0.82
+
+# opacity: no blur (VOID keeps text sharp). Profiles rewrite void-profile.conf
+# (minimal = opaque); ctrl+shift+a then m/l/1/d adjusts it live.
+background_opacity 0.96
+background_blur 0
+dynamic_background_opacity yes
+include void-profile.conf
+
+cursor                #F2F2F2
+cursor_text_color     #080808
+cursor_shape          block
+cursor_blink_interval 0
+# needs kitty 0.37+ (older versions ignore these two lines)
+cursor_trail          1
+cursor_trail_decay    0.08 0.3
+
+foreground            #E5E5E5
+background            #080808
+selection_foreground  #080808
+selection_background  #E5E5E5
+url_color             #F2F2F2
+url_style             single
+mark1_background      #E5E5E5
+mark1_foreground      #080808
+
+color0   #1B1B1B
+color1   #B8B8B8
+color2   #9C9C9C
+color3   #CCCCCC
+color4   #8C8C8C
+color5   #A6A6A6
+color6   #969696
+color7   #D6D6D6
+color8   #5E5E5E
+color9   #D2D2D2
+color10  #BEBEBE
+color11  #E2E2E2
+color12  #ADADAD
+color13  #C6C6C6
+color14  #B9B9B9
+color15  #F2F2F2
+
+# tab bar (Crimson used slanted powerline in crimson; VOID uses flat hairline separators)
+tab_bar_edge            top
+tab_bar_style           separator
+tab_separator           " │ "
+tab_bar_margin_width    6.0
+tab_title_template      " {index} // {title[:28]} "
+active_tab_foreground   #F2F2F2
+active_tab_background   #1B1B1B
+active_tab_font_style   bold
+inactive_tab_foreground #777777
+inactive_tab_background #080808
+tab_bar_background      #080808
+
+# VOID shell layer — your shell rc loads first (plain shell: VOID_PLAIN=1 kitty)
+shell @VOID_SHELL@
+
+# shortcuts (Crimson's set)
+map ctrl+shift+enter    launch --cwd=current --location=vsplit
+map ctrl+shift+minus    launch --cwd=current --location=hsplit
+map ctrl+shift+t        new_tab_with_cwd
+map ctrl+shift+left     neighboring_window left
+map ctrl+shift+right    neighboring_window right
+map ctrl+shift+up       neighboring_window up
+map ctrl+shift+down     neighboring_window down
+map ctrl+shift+z        toggle_layout stack
+map ctrl+shift+a>m      set_background_opacity +0.05
+map ctrl+shift+a>l      set_background_opacity -0.05
+map ctrl+shift+a>1      set_background_opacity 1
+map ctrl+shift+a>d      set_background_opacity default
+map ctrl+shift+f5       load_config_file
+
+# Crimson's music shortcuts, now VOID (one backend: void-core)
+map ctrl+shift+l        launch --type=os-window --title "VOID // LYRICS" --os-window-class void-lyrics @VOID_BIN@ lyrics
+map ctrl+shift+v>c      launch --type=overlay @VOID_BIN@ cava
+map ctrl+shift+i        launch --type=overlay --hold @VOID_BIN@ fetch
+map ctrl+shift+m        launch --type=overlay @VOID_BIN@ music
+map ctrl+shift+d        launch --type=background @VOID_BIN@ launch

@@ -40,13 +40,17 @@ load_threshold = 0.9
 system_monitor = "auto"   # auto | btop | builtin
 clock = "builtin"          # builtin | tty-clock
 rain = "builtin"           # builtin | cmatrix
-terminal = "auto"          # auto | konsole | alacritty
+terminal = "auto"          # auto (Konsole, else Kitty, else Alacritty) | konsole | kitty | alacritty
 
 [konsole]
 # Make "VOID" Konsole's default profile while VOID is active (restored on deactivate).
 set_default_profile = true
 # Show the Geass fastfetch once when a VOID Konsole window opens.
 startup_fetch = true
+
+[kitty]
+# Theme Kitty too (when installed): VOID's block goes at the end of kitty.conf while active.
+enabled = true
 
 [kde]
 color_scheme = true
@@ -57,11 +61,16 @@ lockscreen = true
 # "auto" = a monochrome cursor theme that is already installed; "" = leave the cursor alone.
 cursor = "auto"
 dashboard_window_rule = true
+# Meta+Alt+D/L/P/[/] go to VOID while it is active (Crimson's bindings set aside, then restored).
+shortcuts = true
 
 [wallpaper]
 source_dir = "~/Downloads/home/jan/Downloads/pack 1"
-# Force a specific file instead of the automatic ranking.
+# Force files instead of the automatic ranking: "pick" = the same image on every monitor,
+# or one per side. Empty = automatic (panorama, matched pair or one image, from the pack).
 pick = ""
+pick_left = ""
+pick_right = ""
 
 [spicetify]
 enabled = true

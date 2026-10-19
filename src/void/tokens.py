@@ -229,7 +229,7 @@ def fastfetch_config() -> str:
         "logo": {"type": "file", "source": "@LOGO@",
                  "color": {"1": sgr(p["highlight"]), "2": sgr(p["muted"]), "3": sgr(p["border"])},
                  "padding": {"top": 1, "left": 2, "right": 4}},
-        "display": {"separator": " ▸ ",
+        "display": {"separator": " ▸ ", "disableLinewrap": True,
                     "color": {"keys": sgr(p["muted"]), "title": sgr(p["highlight"]),
                               "output": sgr(p["text"]), "separator": sgr(p["border"])}},
         "modules": mods,

@@ -151,3 +151,10 @@ class JsonState:
         tmp = self.path.with_name(self.path.name + ".tmp")
         tmp.write_text(json.dumps(self.data, indent=2, sort_keys=True))
         tmp.replace(self.path)
+
+
+def current_profile(cfg: dict | None = None) -> str:
+    """The performance profile chosen at runtime (`void profile …`), else the configured default."""
+    cfg = cfg or load()
+    p = JsonState(paths.UI_STATE_FILE).data.get("performance") or cfg["dashboard"].get("performance", "balanced")
+    return p if p in PERFORMANCE else "balanced"

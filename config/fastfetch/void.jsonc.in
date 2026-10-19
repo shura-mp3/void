@@ -17,6 +17,7 @@
   },
   "display": {
     "separator": " ▸ ",
+    "disableLinewrap": true,
     "color": {
       "keys": "38;2;119;119;119",
       "title": "38;2;242;242;242",

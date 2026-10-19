@@ -196,7 +196,7 @@ input:checked ~ .x-toggle-indicatorWrapper { background-color: var(--spice-subte
 [data-testid="lyrics-container"] {
   --lyrics-color-background: var(--spice-main) !important;
   --lyrics-color-active: var(--spice-accent-active) !important;
-  --lyrics-color-inactive: var(--spice-misc) !important;
+  --lyrics-color-inactive: var(--spice-void-muted) !important;
   --lyrics-color-passed: var(--spice-subtext) !important;
   --lyrics-color-messaging: var(--spice-subtext) !important;
   background-color: var(--spice-main) !important;

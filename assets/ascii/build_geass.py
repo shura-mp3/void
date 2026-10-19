@@ -37,16 +37,17 @@ def lines() -> list[tuple[str, int]]:
 def coloured(row: str, layer: int) -> str:
     if layer == 1:
         return "$1" + row
-    c = len(row) // 2
+    c = 20  # centre column of the 41-wide sigil
     a, b = c - BODY, c + BODY + 1
-    return "$2" + row[:a] + "$1" + row[a:b] + "$2" + row[b:]
+    out = "$2" + row[:a] + "$1" + row[a:b] + ("$2" + row[b:] if row[b:].strip() else "")
+    return out.rstrip()
 
 
 def main() -> None:
     rows = lines()
     plain = "\n".join(r.rstrip() for r, _ in rows) + "\n"
     (ROOT / "assets" / "ascii" / "geass.txt").write_text(plain)
-    (ROOT / "config" / "fastfetch" / "geass.txt").write_text("\n".join(coloured(r, l).rstrip() for r, l in rows) + "\n")
+    (ROOT / "config" / "fastfetch" / "geass.txt").write_text("\n".join(coloured(r.rstrip(), l) for r, l in rows) + "\n")
     print(plain)
 
 

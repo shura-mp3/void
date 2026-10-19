@@ -24,7 +24,7 @@ const STYLE = `
 .void-btn:disabled { opacity: .4; cursor: default; }
 .void-current { color: ${V("accent-active")}; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; transition: opacity 200ms; }
 .void-reduce-effects .void-current { transition: none; }
-.void-dim { color: ${V("misc")}; }
+.void-dim { color: ${V("void-muted")}; }
 .void-near { color: ${V("subtext")}; }
 `;
 
@@ -147,7 +147,7 @@ function Lyrics({ lyrics, matched, connected, track, position, wordMode }) {
 	let current;
 	if (!cur) current = "· · ·";
 	else if (wordMode && cur.w) current = (cur.w[Math.max(0, wi)][1] || "").trim();
-	else if (cur.w) current = cur.w.map((w, i) => h("span", { key: i, style: { color: i <= wi ? V("accent-active") : V("misc") } }, w[1]));
+	else if (cur.w) current = cur.w.map((w, i) => h("span", { key: i, style: { color: i <= wi ? V("accent-active") : V("void-muted") } }, w[1]));
 	else current = text(idx);
 
 	return h("div", { style: { textAlign: "center", padding: "28px 0" } },

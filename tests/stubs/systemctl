@@ -17,13 +17,15 @@ if cmd == "list-unit-files":
         if known(u): print(f"{u} {'enabled' if st.get(u, {}).get('enabled') else 'disabled'}")
     sys.exit(0)
 for u in units:
-    s = st.setdefault(u, {"active": False, "enabled": False})
+    exists = known(u)
+    s = st.get(u, {"active": False, "enabled": False})
     if cmd == "is-active":
         print("active" if s["active"] else "inactive"); sys.exit(0 if s["active"] else 3)
     if cmd == "is-enabled":
         print("enabled" if s["enabled"] else "disabled"); sys.exit(0 if s["enabled"] else 1)
-    if not known(u):
+    if not exists:
         print(f"Unit {u} not found.", file=sys.stderr); sys.exit(5)
+    st[u] = s
     if cmd == "start": s["active"] = True
     elif cmd == "stop": s["active"] = False
     elif cmd == "enable": s["enabled"] = True

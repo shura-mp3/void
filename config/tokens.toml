@@ -79,3 +79,6 @@ nav-active = "elevated"
 nav-active-text = "highlight"
 play-button = "highlight"
 playback-bar = "text"
+# VOID's own key (Spicetify turns every key into --spice-<key>): unsung / inactive lyrics,
+# the same grey the terminal music pane uses.
+void-muted = "muted"

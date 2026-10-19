@@ -1,0 +1,81 @@
+# VOID design tokens — the single source of every colour VOID uses.
+#
+# Generated from this file (never edit the outputs by hand; run `bin/void tokens build`):
+#   config/konsole/Void.colorscheme      config/kde/VOIDMonochrome.colors
+#   config/btop/void.theme               config/alacritty/void.toml
+#   config/tmux/colors.conf              config/cava/void
+#   config/fastfetch/void.jsonc.in       spicetify/Themes/VOID/color.ini
+# The terminal programs (music/lyrics, clock, data rain, system monitor) read this file at runtime.
+# tests/test_tokens.py fails if any generated file is out of date or a colour outside this file appears.
+
+[palette]
+background = "#080808"   # deepest surface: desktop, terminal, Spotify main view
+secondary  = "#111111"   # panels, sidebars, inactive tabs
+elevated   = "#1B1B1B"   # cards, menus, hover rows
+border     = "#333333"   # hairlines, pane borders, separators
+muted      = "#777777"   # labels, timestamps, inactive lyrics
+secondary_text = "#AAAAAA"
+text       = "#E5E5E5"   # body text
+highlight  = "#F2F2F2"   # active lyric, selection, focus, the one thing that matters
+
+# Terminal ANSI colours. VOID has no hues: the sixteen slots are grey steps that stay
+# distinguishable by lightness, so `ls`, git diffs and compiler errors remain readable.
+[ansi]
+black   = "#1B1B1B"
+red     = "#B8B8B8"
+green   = "#9C9C9C"
+yellow  = "#CCCCCC"
+blue    = "#8C8C8C"
+magenta = "#A6A6A6"
+cyan    = "#969696"
+white   = "#D6D6D6"
+bright_black   = "#5E5E5E"
+bright_red     = "#D2D2D2"
+bright_green   = "#BEBEBE"
+bright_yellow  = "#E2E2E2"
+bright_blue    = "#ADADAD"
+bright_magenta = "#C6C6C6"
+bright_cyan    = "#B9B9B9"
+bright_white   = "#F2F2F2"
+
+[terminal]
+font = "JetBrains Mono"       # falls back to the system monospace font when missing
+font_size = 11
+dashboard_font_size = 10      # the dashboard needs ~210 columns on a 1920 px monitor
+opacity = 0.96                # Konsole window opacity; 1.0 = opaque (Minimal profile forces 1.0)
+padding = 8
+
+[spotify]
+# Spotify's Spicetify colour keys mapped onto palette names (or literal #hex — avoid).
+text = "text"
+subtext = "secondary_text"
+main = "background"
+main-elevated = "secondary"
+main-secondary = "secondary"
+main-transition = "background"
+highlight = "elevated"
+highlight-elevated = "border"
+sidebar = "background"
+player = "secondary"
+card = "secondary"
+shadow = "#000000"
+selected-row = "highlight"
+button = "secondary_text"
+button-active = "highlight"
+button-secondary = "border"
+button-disabled = "border"
+tab-active = "elevated"
+notification = "elevated"
+notification-error = "border"
+misc = "border"
+accent = "secondary_text"
+accent-active = "highlight"
+accent-inactive = "secondary"
+border-active = "secondary_text"
+border-inactive = "border"
+banner = "elevated"
+header = "border"
+nav-active = "elevated"
+nav-active-text = "highlight"
+play-button = "highlight"
+playback-bar = "text"

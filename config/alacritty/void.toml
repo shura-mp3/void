@@ -1,0 +1,44 @@
+# VOID — Alacritty theme. Generated from config/tokens.toml by `bin/void tokens build` — do not edit by hand.
+# Use it with: [general] import = ["~/.config/alacritty/void.toml"]
+
+[colors.primary]
+background = "#080808"
+foreground = "#E5E5E5"
+bright_foreground = "#F2F2F2"
+dim_foreground = "#777777"
+
+[colors.cursor]
+text = "#080808"
+cursor = "#F2F2F2"
+
+[colors.selection]
+text = "#080808"
+background = "#E5E5E5"
+
+[colors.normal]
+black = "#1B1B1B"
+red = "#B8B8B8"
+green = "#9C9C9C"
+yellow = "#CCCCCC"
+blue = "#8C8C8C"
+magenta = "#A6A6A6"
+cyan = "#969696"
+white = "#D6D6D6"
+
+[colors.bright]
+black = "#5E5E5E"
+red = "#D2D2D2"
+green = "#BEBEBE"
+yellow = "#E2E2E2"
+blue = "#ADADAD"
+magenta = "#C6C6C6"
+cyan = "#B9B9B9"
+white = "#F2F2F2"
+
+[window]
+opacity = 0.96
+padding = { x = 8, y = 8 }
+
+[font]
+size = 11.0
+normal = { family = "JetBrains Mono" }

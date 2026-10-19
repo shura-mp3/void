@@ -1,0 +1,28 @@
+# VOID — CAVA (standalone: `bin/void cava`). Generated from config/tokens.toml by `bin/void tokens build` — do not edit by hand.
+# The dashboard does not run this file: void-core runs one raw-output CAVA and shares the spectrum.
+[general]
+framerate = 30
+bars = 0
+bar_width = 2
+bar_spacing = 1
+sleep_timer = 5
+
+[input]
+method = pipewire
+source = auto
+
+[output]
+method = ncurses
+
+[color]
+background = '#080808'
+foreground = '#AAAAAA'
+gradient = 1
+gradient_count = 3
+gradient_color_1 = '#333333'
+gradient_color_2 = '#AAAAAA'
+gradient_color_3 = '#F2F2F2'
+
+[smoothing]
+noise_reduction = 77
+monstercat = 1

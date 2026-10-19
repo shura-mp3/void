@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # VOID shell layer — shared by bash and zsh. Sourced by void.bashrc / zsh/.zshrc AFTER your own rc.
 # Only VOID Konsole sessions load this (via bin/void-shell); nothing here is written to your dotfiles.
 

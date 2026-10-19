@@ -18,6 +18,10 @@ It lives alongside **Crimson Desktop**. Switching between the two is journaled a
 └───────────────────────────────────────────────────┘
 ```
 
+![VOID dashboard](docs/screenshots/dashboard.png)
+
+*The real dashboard rendered in the build container (fake Spotify, real void-core, tmux, btop and fastfetch). Konsole draws the block glyphs without the hairline gaps seen here.*
+
 > **How this was built and tested.** VOID was written in a cloud container that could not reach
 > your PC. Everything below was run there, against test doubles of KDE's tools, systemd, Konsole,
 > Spotify's install folder and Spicetify, and against real tmux, btop, fastfetch, D-Bus and CAVA.

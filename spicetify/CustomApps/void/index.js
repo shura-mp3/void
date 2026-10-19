@@ -10,7 +10,8 @@ const react = Spicetify.React;
 const { useState, useEffect, useRef, useCallback } = react;
 const h = react.createElement;
 
-const V = (name) => `var(--spice-${name})`;
+// void-muted is VOID's own color.ini key; Spotify's subtext grey stands in if Spicetify doesn't export it
+const V = (name) => (name === "void-muted" ? "var(--spice-void-muted, var(--spice-subtext))" : `var(--spice-${name})`);
 const MONO = '"JetBrains Mono", "DejaVu Sans Mono", monospace';
 
 const STYLE = `

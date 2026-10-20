@@ -284,25 +284,40 @@ def spicetify_colors() -> str:
 
 
 def fastfetch_config() -> str:
-    """fastfetch config template; @LOGO@ is replaced with the absolute logo path when installed."""
+    """fastfetch config template: the Geass sigil + boxed Hardware / Software sections + a quote.
+
+    @LOGO@ and @QUOTE@ are filled in at runtime (src/void/dashboard/fetch.py).
+    """
     p = pal()
-    keys = [("os", "OS"), ("kernel", "KERNEL"), ("uptime", "UPTIME"), ("de", "PLASMA"), ("wm", "KWIN"),
-            ("cpu", "CPU"), ("gpu", "GPU"), ("memory", "RAM"), ("disk", "STORAGE"), ("terminal", "TERMINAL"),
-            ("display", "DISPLAY")]
-    width = max(len(k) for _, k in keys) + 1
-    mods: list = ["title", {"type": "separator", "string": "─"}]
-    for typ, key in keys:
-        m = {"type": typ, "key": f"{key:<{width}}"}
-        if typ == "disk":
-            m["folders"] = "/"
-        mods.append(m)
-    mods += ["break", {"type": "colors", "symbol": "block", "paddingLeft": 0}]
+    width = 34
+
+    def box(title: str) -> dict:
+        t = f" {title} "
+        side = (width - len(t)) // 2
+        return {"type": "custom", "format": "┌" + "─" * side + t + "─" * (width - side - len(t)) + "┐",
+                "outputColor": sgr(p["secondary_text"])}
+
+    def row(typ: str, key: str, **extra) -> dict:
+        return {"type": typ, "key": f"  ▪ {key:<8}", "keyColor": sgr(p["muted"]), **extra}
+
+    end = {"type": "custom", "format": "└" + "─" * width + "┘", "outputColor": sgr(p["border"])}
+    mods: list = [
+        "title",
+        box("Hardware Information"),
+        row("host", "host"), row("cpu", "cpu"), row("gpu", "gpu"), row("memory", "ram"),
+        row("disk", "storage", folders="/"), row("display", "display"),
+        box("Software Information"),
+        row("os", "os"), row("kernel", "kernel"), row("de", "plasma"), row("wm", "kwin"), row("shell", "shell"),
+        row("terminal", "terminal"), row("packages", "packages"), row("uptime", "uptime"), row("localip", "ip"),
+        end, "break",
+        {"type": "custom", "format": "❝ @QUOTE@ ❞", "outputColor": sgr(p["highlight"])},
+    ]
     doc = {
         "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
         "logo": {"type": "file", "source": "@LOGO@",
                  "color": {"1": sgr(p["highlight"]), "2": sgr(p["muted"]), "3": sgr(p["border"])},
-                 "padding": {"top": 1, "left": 2, "right": 4}},
-        "display": {"separator": " ▸ ", "disableLinewrap": True,
+                 "padding": {"top": 2, "left": 2, "right": 3}},
+        "display": {"separator": " ", "disableLinewrap": True,
                     "color": {"keys": sgr(p["muted"]), "title": sgr(p["highlight"]),
                               "output": sgr(p["text"]), "separator": sgr(p["border"])}},
         "modules": mods,

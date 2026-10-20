@@ -11,6 +11,7 @@ Without fastfetch, a built-in summary is printed next to the same sigil.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import shutil
 import signal
@@ -29,7 +30,11 @@ PLAIN_LOGO = paths.PROJECT_DIR / "assets" / "ascii" / "geass.txt"
 def config_file() -> str:
     """Render the fastfetch config template with absolute paths (idempotent)."""
     dest = paths.GENERATED / "fastfetch.jsonc"
-    text = (paths.CONFIG_SRC / "fastfetch" / "void.jsonc.in").read_text().replace("@LOGO@", str(LOGO))
+    quote = config.load()["dashboard"].get("quote") or ""
+    text = (paths.CONFIG_SRC / "fastfetch" / "void.jsonc.in").read_text().replace("@LOGO@", str(LOGO)) \
+        .replace("@QUOTE@", json.dumps(quote)[1:-1])
+    if not quote:
+        text = text.replace('"format": "❝  ❞"', '"format": ""')
     if not dest.exists() or dest.read_text() != text:
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(text)

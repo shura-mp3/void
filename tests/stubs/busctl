@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Test double for `busctl --user --json=short call SERVICE PATH IFACE MEMBER [SIG ARGS…]`:
+# Plasma scripting runs VOID's real JavaScript in node; the reply is printed like busctl's JSON.
+echo "busctl $*" >> "$HOME/stub-calls.log"
+shift 3   # --user --json=short call
+svc="$1" member="$4"
+if [ "$member" = evaluateScript ]; then
+    out="$(node "$(dirname "$(readlink -f "$0")")/plasma_eval.js" "$6")" || exit 1
+    python3 -c 'import json,sys; print(json.dumps({"type": "s", "data": [sys.argv[1]]}))' "$out"
+fi
+exit 0

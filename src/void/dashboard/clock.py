@@ -10,7 +10,9 @@ from . import bigfont
 from .term import Screen, center, fg, run_safely, width
 
 
-def render(now: time.struct_time, cols: int, rows: int, seconds: bool) -> list[str]:
+def render(now: time.struct_time, cols: int, rows: int, seconds: bool, style: str = "classic") -> list[str]:
+    if style == "segment":
+        return render_segment(now, cols, rows, seconds)
     hhmm = time.strftime("%H:%M:%S" if seconds else "%H:%M", now)
     mode = "wide" if bigfont.cell_width(hhmm, "wide") <= cols - 2 and rows >= 8 else "half"
     if bigfont.cell_width(hhmm, mode) > cols:
@@ -28,7 +30,19 @@ def render(now: time.struct_time, cols: int, rows: int, seconds: bool) -> list[s
     return [fg("muted") + label] + [""] * (top - 1) + block
 
 
+def render_segment(now: time.struct_time, cols: int, rows: int, seconds: bool) -> list[str]:
+    """The reference look: big digits in groups ("21 29 50"), ISO date underneath, nothing else."""
+    text = time.strftime("%H %M %S" if seconds else "%H %M", now)
+    mode = "wide" if bigfont.cell_width(text, "wide") <= cols - 2 and rows >= 8 else "half"
+    digits = bigfont.render(text, mode)
+    block = [fg("highlight") + center(d, cols) for d in digits] + ["", fg("muted") + center(time.strftime("%Y-%m-%d", now), cols)]
+    top = max(0, (rows - len(block)) // 2)
+    return [""] * top + block
+
+
 def main(argv: list[str] | None = None) -> int:
+    cfg = config.load()
+    style = cfg["dashboard"].get("clock_style") or ("segment" if cfg["dashboard"].get("layout", "grid") == "grid" else "classic")
     seconds = config.profile(config.current_profile())["clock_seconds"]
     if argv and "--seconds" in argv:
         seconds = True
@@ -37,7 +51,7 @@ def main(argv: list[str] | None = None) -> int:
         with Screen() as scr:
             while True:
                 cols, rows = scr.size()
-                scr.draw(render(time.localtime(), cols, rows, seconds))
+                scr.draw(render(time.localtime(), cols, rows, seconds, style))
                 step = 1 if seconds else 60
                 scr.read_key(step - (time.time() % step) + 0.01)
 

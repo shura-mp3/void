@@ -45,6 +45,12 @@ font_size = 11
 dashboard_font_size = 10      # the dashboard needs ~210 columns on a 1920 px monitor
 opacity = 0.96                # Konsole window opacity; 1.0 = opaque (Minimal profile forces 1.0)
 padding = 8
+# The grid dashboard on the right monitor (one Kitty window, four bordered tiles):
+grid_gap = 7                  # px between tiles (Kitty window_margin_width)
+grid_padding = 10             # px inside each tile
+grid_opacity = 0.62           # tiles are translucent: the wallpaper shows through (minimal profile = opaque)
+grid_blur = 28                # KWin blur behind the tiles (0 = none)
+grid_font_size = 9
 
 [spotify]
 # Spotify's Spicetify colour keys mapped onto palette names (or literal #hex — avoid).

@@ -27,7 +27,7 @@ from pathlib import Path
 from .. import client, config, paths, tokens
 from ..dashboard import session
 from . import files, kde, kitty, konsole, monitors, services, shortcuts, spotify, ui, wallpaper
-from .journal import ABSENT, HANDLERS, Journal, show
+from .journal import ABSENT, HANDLERS, Handler, Journal, register, show
 
 DASH_PID = paths.STATE_DIR / "dashboard-window.pid"
 AUTOSTART = paths.XDG_CONFIG / "autostart" / "void-dashboard.desktop"
@@ -201,6 +201,12 @@ def activate(argv: list[str]) -> int:
             ui.ok("Meta+Alt+D dashboard · Meta+Alt+L lyrics (Kitty) · Meta+Alt+P profile · Meta+Alt+[ / ] lyric timing")
             ui.info("global shortcuts switch over completely after your next login (KDE reads them at login)")
 
+        if cfg["dashboard"].get("autostart", True):
+            j.change("autostart", str(AUTOSTART), True, "dashboard opens at login")
+            ui.ok("autoload: the dashboard opens on the right monitor at every login while VOID is active")
+        if cfg["dashboard"].get("layout", "grid") == "grid" and k.get("window_decoration", True):
+            j.change("kconfig", kde.kkey("kwinrc", "Plugins", "blurEnabled"), "true", "blur behind the dashboard tiles")
+
         ui.hdr("void-core")
         services.install_units()
         if ui.have("systemctl") and services.unit_exists("void-core.service"):
@@ -354,6 +360,24 @@ def ensure_core() -> None:
         client.start_core()
 
 
+def tmux_terminal(term: str) -> list[str] | None:
+    """A terminal window attached to the tmux dashboard (music layout, or the grid without Kitty)."""
+    attach = [str(paths.PROJECT_DIR / "bin" / "void"), "dashboard", "attach"]
+    if term in ("auto", "konsole") and ui.have("konsole"):
+        return ["konsole", "--separate", "--hide-menubar", "--hide-tabbar", "--profile", "VOID Dashboard"]
+    if term in ("auto", "kitty") and ui.have("kitty"):
+        t = tokens.load()["terminal"]
+        kitty.install()
+        confs = (["--config", str(kitty.CONF)] if kitty.CONF.exists() else []) + ["--config", str(kitty.THEME)]
+        return ["kitty", *confs, "--class", "void-dashboard", "--title", kde.DASH_TITLE,
+                "-o", f"font_size={t['dashboard_font_size']}", "-o", "hide_window_decorations=yes",
+                "-o", "tab_bar_min_tabs=99", "-o", "window_padding_width=2", *attach]
+    if term in ("auto", "alacritty") and ui.have("alacritty"):
+        return ["alacritty", "--config-file", konsole.alacritty_dashboard_config(), "--class", "void-dashboard",
+                "-e", *attach]
+    return None
+
+
 def launch(argv: list[str], cfg: dict | None = None) -> int:
     cfg = cfg or config.load()
     if "--autostart" in argv:
@@ -365,31 +389,25 @@ def launch(argv: list[str], cfg: dict | None = None) -> int:
             time.sleep(1)
         time.sleep(3)
     ensure_core()
-    session.build()
     pid = dashboard_window_pid()
     if pid:
         ui.ok(f"dashboard already open (pid {pid}) — not starting a second one")
         return 0
     term = cfg["dashboard"].get("terminal", "auto")
+    layout = cfg["dashboard"].get("layout", "grid")
     if Journal().status != "active":
         ui.info("VOID is not active: the dashboard opens as a normal window (activate for right-monitor placement)")
     konsole.install()
-    if term in ("auto", "konsole") and ui.have("konsole"):
-        cmd = ["konsole", "--separate", "--hide-menubar", "--hide-tabbar", "--profile", "VOID Dashboard"]
-    elif term in ("auto", "kitty") and ui.have("kitty"):
-        t = tokens.load()["terminal"]
-        kitty.install()
-        confs = (["--config", str(kitty.CONF)] if kitty.CONF.exists() else []) + ["--config", str(kitty.THEME)]
-        cmd = ["kitty", *confs, "--class", "void-dashboard", "--title", kde.DASH_TITLE,
-               "-o", f"font_size={t['dashboard_font_size']}", "-o", "hide_window_decorations=yes",
-               "-o", "tab_bar_min_tabs=99", "-o", "window_padding_width=2",
-               str(paths.PROJECT_DIR / "bin" / "void"), "dashboard", "attach"]
-    elif term in ("auto", "alacritty") and ui.have("alacritty"):
-        cmd = ["alacritty", "--config-file", konsole.alacritty_dashboard_config(), "--class", "void-dashboard",
-               "-e", str(paths.PROJECT_DIR / "bin" / "void"), "dashboard", "attach"]
+    if layout == "grid" and term in ("auto", "kitty") and ui.have("kitty"):
+        from ..dashboard import grid
+        cmd = grid.command(cfg)        # one Kitty window, four tiles — no tmux needed
     else:
-        ui.warn("no supported terminal (Konsole / Kitty / Alacritty) found — attach by hand:  tmux -L void-desktop attach -t void")
-        return 1
+        cmd = tmux_terminal(term)
+        if not cmd:
+            ui.warn("no supported terminal (Konsole / Kitty / Alacritty) found — attach by hand:  "
+                    "tmux -L void-desktop attach -t void")
+            return 1
+        session.build(layout=layout)
     p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
     DASH_PID.parent.mkdir(parents=True, exist_ok=True)
     DASH_PID.write_text(str(p.pid))
@@ -467,14 +485,33 @@ def profile(argv: list[str]) -> int:
     return 0
 
 
+def autostart_text() -> str:
+    return "\n".join([
+        "[Desktop Entry]", "Type=Application", "Name=VOID dashboard",
+        "Comment=Opens the VOID dashboard on the right-hand monitor at login (only while VOID is active)",
+        f"Exec={paths.PROJECT_DIR / 'bin' / 'void'} launch --autostart", "X-KDE-autostart-phase=2",
+        "NoDisplay=true", ""])
+
+
+@register
+class Autostart(Handler):
+    """key = path of the login entry. value: True (VOID's entry present) or ABSENT."""
+    kind = "autostart"
+
+    def get(self, key):
+        return True if Path(key).exists() else ABSENT
+
+    def set(self, key, value):
+        if value is True:
+            files.install(Path(key), autostart_text(), quiet=True)
+        elif Path(key).exists() and files.is_ours(Path(key)):
+            Path(key).unlink()
+
+
 def autostart(argv: list[str]) -> int:
     cmd = argv[0] if argv else "status"
     if cmd == "on":
-        files.install(AUTOSTART, "\n".join([
-            "[Desktop Entry]", "Type=Application", "Name=VOID dashboard",
-            "Comment=Opens the VOID dashboard on the right-hand monitor at login (only while VOID is active)",
-            f"Exec={paths.PROJECT_DIR / 'bin' / 'void'} launch --autostart", "X-KDE-AutostartScript=false",
-            "NoDisplay=true", ""]))
+        files.install(AUTOSTART, autostart_text())
         ui.ok("autostart on — the dashboard opens at login while VOID is active (void autostart off to stop)")
     elif cmd == "off":
         if AUTOSTART.exists() and files.is_ours(AUTOSTART):

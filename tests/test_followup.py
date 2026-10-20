@@ -219,3 +219,73 @@ class KittyTests(unittest.TestCase):
         self.assertEqual(res["most_common"][0][0], [8, 8, 8])               # VOID background fills the window
         self.assertEqual(res["lyrics"], "synced")
         self.assertGreaterEqual(res["core_clients"], 2)                     # the lyrics view is a void-core client
+
+
+@unittest.skipUnless(shutil.which("node"), "node is needed for the Plasma scripting test double")
+class NoQdbusTests(unittest.TestCase):
+    """Nobara without qdbus6/qdbus-qt6: wallpapers must still be applied through systemd's busctl."""
+
+    def test_both_wallpapers_via_busctl(self):
+        import fixtures as fx
+        with tempfile.TemporaryDirectory() as t:
+            home, stubs = Path(t) / "home", Path(t) / "stubs"
+            home.mkdir()
+            shutil.copytree(fx.STUBS, stubs, symlinks=True)
+            (stubs / "qdbus6").unlink()
+            fx.crimson_home(home)
+            plasma = fx.plasmashell(home)
+            path = f"{stubs}:{Path(shutil.which('node')).parent}:/usr/bin:/bin"
+            try:
+                before = fx.snapshot(home)
+                r = fx.void(home, "activate", "--no-launch", PATH=path)
+                self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+                desks = json.loads((home / "plasma-desktops.json").read_text())["desktops"]
+                imgs = [d["config"]["Wallpaper/org.kde.image/General"]["Image"] for d in desks]
+                self.assertTrue(imgs[0].endswith("/DP-1.png") and imgs[1].endswith("/HDMI-A-1.png"), imgs)
+                log = (home / "stub-calls.log").read_text()
+                self.assertIn("busctl --user --json=short call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s", log)
+                self.assertNotIn("qdbus6", log)
+                self.assertEqual(fx.void(home, "deactivate", PATH=path).returncode, 0)
+                self.assertEqual(fx.snapshot(home), before)
+            finally:
+                plasma.kill()
+                plasma.wait()
+
+
+class GridDashboardTests(unittest.TestCase):
+    def test_kitty_grid_command_and_files(self):
+        with _env.new_home() as h:
+            code = ("import json; from void import config; from void.dashboard import grid; "
+                    "c = grid.command(config.load()); print(json.dumps(c))")
+            r = subprocess.run([sys.executable, "-c", code], env=_env.sandbox_env(Path(h)), capture_output=True, text=True)
+            cmd = json.loads(r.stdout.strip().splitlines()[-1])
+            conf = Path(cmd[cmd.index("--config", 2) + 1]).read_text()
+            sess = Path(cmd[cmd.index("--session") + 1]).read_text()
+        self.assertEqual(cmd[cmd.index("--class") + 1], "void-dashboard")        # matched by the KWin rule
+        self.assertEqual(cmd[cmd.index("--title") + 1], "VOID//DASHBOARD")
+        for line in ("enabled_layouts grid", "draw_minimal_borders no", "window_margin_width 7",
+                     "background_opacity 0.62", "background_blur 28"):
+            self.assertIn(line, conf)
+        self.assertEqual(re.findall(r"pane (\w+)", sess), ["shell", "rain", "sysmon", "clock"])
+
+    def test_segment_clock(self):
+        from void.dashboard import clock
+        t = time.strptime("2025-10-02 21:29:50", "%Y-%m-%d %H:%M:%S")
+        out = [ANSI.sub("", l) for l in clock.render(t, 114, 31, True, "segment")]
+        self.assertIn("2025-10-02", "\n".join(out))
+        self.assertEqual(sum(1 for l in out if "██" in l), 5)
+        self.assertNotIn("WEEK", "\n".join(out))
+
+    @unittest.skipUnless(shutil.which("kitty") and shutil.which("xvfb-run") and shutil.which("import"),
+                         "needs kitty, xvfb-run and ImageMagick import")
+    def test_real_kitty_grid(self):
+        with _env.new_home() as h:
+            (Path(h) / ".bashrc").write_text('PS1="$ "\n')
+            r = subprocess.run(["xvfb-run", "-a", "-s", "-screen 0 1920x1080x24", sys.executable,
+                                str(_env.TESTS / "browser/grid_check.py"), str(Path(h) / "grid.png")],
+                               env=_env.sandbox_env(Path(h)), capture_output=True, text=True, timeout=150)
+            res = json.loads(r.stdout.strip().splitlines()[-1])
+        self.assertEqual(set(res["tiles"]), {"GEASS", "DATA.STREAM", "SYSTEM.MON", "CHRONO"})
+        mon = res["tiles"]["SYSTEM.MON"]
+        self.assertGreaterEqual((mon["columns"], mon["lines"]), (80, 24))      # btop's minimum, at 1920x1080
+        self.assertEqual(res["nongrey"], 0)

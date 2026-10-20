@@ -157,6 +157,12 @@ class TmuxSessionTests(unittest.TestCase):
         self.home = Path(self.tmp.name)
         self.env = fx.env_for(self.home, TMUX_TMPDIR=str(self.home / "tmux"))
         (self.home / "tmux").mkdir()
+        self.layout("music", "konsole")
+
+    def layout(self, name, terminal):
+        cfgdir = self.home / ".config/void-desktop"
+        cfgdir.mkdir(parents=True, exist_ok=True)
+        (cfgdir / "config.toml").write_text(f'[dashboard]\nlayout = "{name}"\nterminal = "{terminal}"\n')
 
     def tearDown(self):
         subprocess.run([str(_env.ROOT / "bin/void"), "stop"], env=self.env, capture_output=True)
@@ -171,7 +177,7 @@ class TmuxSessionTests(unittest.TestCase):
         self.assertIn("already running", self.void("dashboard", "build").stdout)
         time.sleep(3)
         st = self.void("dashboard", "status").stdout
-        for pane in session.PANES:
+        for pane in ("fetch", "sysmon", "rain", "clock", "music"):   # the music layout's five panes
             self.assertIn(pane, st)
         self.assertNotIn("DEAD", st)
         # btop keeps its 80x24 minimum
@@ -197,3 +203,15 @@ class TmuxSessionTests(unittest.TestCase):
         self.assertEqual(subprocess.run(["pgrep", "-f", r"python[0-9.]* -m void\.core"], capture_output=True).returncode, 1)
 
 
+
+    def test_grid_layout_in_konsole_is_a_2x2_tmux_grid(self):
+        self.layout("grid", "konsole")
+        r = self.void("launch")
+        self.assertIn("dashboard opened (konsole", r.stdout, r.stdout + r.stderr)
+        time.sleep(3)
+        st = self.void("dashboard", "status").stdout
+        panes = dict(re.findall(r"^\s+(\w+)\s+\S+\s+(\d+x\d+)", st, re.M))
+        self.assertEqual(set(panes), {"shell", "sysmon", "rain", "clock"})
+        w = {n: tuple(map(int, v.split("x"))) for n, v in panes.items()}
+        self.assertEqual(w["shell"][0], w["rain"][0])                 # even columns
+        self.assertNotIn("DEAD", st)

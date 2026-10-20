@@ -8,19 +8,13 @@ fastfetch, a system monitor, data rain, a clock, and Spotify's now playing with 
 It lives alongside **Crimson Desktop**. Switching between the two is journaled and reversible:
 `void deactivate` puts back exactly what was there before, Crimson included.
 
-```
-┌──────────────────────┬────────────────────────────┐
-│ 01 GEASS / FASTFETCH │ 02 SYSTEM MONITOR (btop)   │
-├──────────────────────┼────────────────────────────┤
-│ 03 DATA RAIN         │ 04 CLOCK                   │
-├──────────────────────┴────────────────────────────┤
-│ 05 NOW PLAYING · SYNCED LYRICS · SPECTRUM          │
-└───────────────────────────────────────────────────┘
-```
+![VOID grid dashboard](docs/screenshots/dashboard-grid.png)
 
-![VOID dashboard](docs/screenshots/dashboard.png)
-
-*The real dashboard rendered in the build container (fake Spotify, real void-core, tmux, btop and fastfetch). Konsole draws the block glyphs without the hairline gaps seen here.*
+*The default **grid** dashboard: one Kitty window on the right-hand monitor, four bordered tiles —
+Geass fastfetch + live shell, btop, matrix rain, clock. Captured from a real Kitty at 1920×1080 in the
+build container (no compositor there; on your desktop the tiles are translucent over the wallpaper).
+It opens by itself at every login while VOID is active. The older five-pane layout with now playing
+and synced lyrics is `[dashboard] layout = "music"`.*
 
 > **How this was built and tested.** VOID was written in a cloud container that could not reach
 > your PC. Everything below was run there, against test doubles of KDE's tools, systemd, Konsole,

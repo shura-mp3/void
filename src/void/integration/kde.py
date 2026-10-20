@@ -84,11 +84,31 @@ class KConfig(Handler):
         return f"{f} [{g.replace('>', '][')}] {k}"
 
 
+def dbus_tool() -> str | None:
+    """qdbus (any of its distro names), else systemd's busctl — always present on Fedora/Nobara."""
+    return tool("qdbus6", "qdbus-qt6", "qdbus", "busctl")
+
+
 def qdbus(service: str, path: str, method: str, *args: str) -> tuple[int, str]:
-    q = tool("qdbus6", "qdbus-qt6", "qdbus")
-    if q:
+    """Call a session-bus method with string arguments; returns (rc, reply text)."""
+    q = dbus_tool()
+    if q and not q.endswith("busctl"):
         return ui.run([q, service, path, method, *args])
-    return ui.run(["gdbus", "call", "--session", "--dest", service, "--object-path", path, "--method", method, *args])
+    if not q:
+        return 127, "no D-Bus command-line tool found (qdbus6 / qdbus-qt6 / busctl)"
+    import json
+    iface, _, member = method.rpartition(".")
+    cmd = [q, "--user", "--json=short", "call", service, path, iface, member]
+    if args:
+        cmd += ["s" * len(args), *args]
+    rc, out = ui.run(cmd)
+    if rc != 0 or not out.strip():
+        return rc, out
+    try:
+        data = json.loads(out.strip().splitlines()[-1]).get("data") or []
+    except ValueError:
+        return rc, out
+    return rc, "\n".join(str(d) for d in data)
 
 
 def plasma_eval(js: str) -> str:

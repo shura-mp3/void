@@ -72,6 +72,9 @@ class CrimsonToVoidAndBack(unittest.TestCase):
         self.assertEqual(sc["[services][void-dashboard-toggle.desktop]"]["_launch"], "Meta+Alt+D")
         self.assertEqual(sc["[kwin]"], {"Overview": "Meta+W,Meta+W,Toggle Overview"})   # unrelated keys untouched
         self.assertTrue((self.home / ".local/share/applications/void-lyrics.desktop").exists())
+        # autoload at login + blur behind the translucent grid tiles
+        self.assertIn("launch --autostart", (self.home / ".config/autostart/void-dashboard.desktop").read_text())
+        self.assertEqual(s["ini"]["kwinrc"]["[Plugins]"]["blurEnabled"], "true")
         # Crimson paused: one Spotify watcher, one appearance manager
         self.assertEqual(s["systemd"]["crimson-core.service"], {"active": False, "enabled": False})
         self.assertEqual(s["systemd"]["crimson-dashboard.service"], {"active": False, "enabled": False})
@@ -111,6 +114,7 @@ class CrimsonToVoidAndBack(unittest.TestCase):
         after = fx.snapshot(self.home)
         self.assertEqual(after, self.before)
         self.assertEqual(self.journal("state.json")["status"], "inactive")
+        self.assertFalse((self.home / ".config/autostart/void-dashboard.desktop").exists())   # autoload removed
         self.assertFalse((self.home / ".local/state/void-desktop/switch/session.json").exists())
         # repeated deactivation is a harmless no-op
         r2 = fx.void(self.home, "deactivate")

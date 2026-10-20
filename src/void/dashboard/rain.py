@@ -17,15 +17,16 @@ SHADES = ["highlight", "text", "secondary_text", "muted", "muted", "border", "bo
 
 
 class Rain:
-    def __init__(self, cols: int, rows: int, seed: int | None = None):
+    def __init__(self, cols: int, rows: int, seed: int | None = None, dense: bool = False):
         self.rng = random.Random(seed)
+        self.dense = dense
         self.resize(cols, rows)
 
     def resize(self, cols: int, rows: int) -> None:
         self.cols, self.rows = cols, max(1, rows)
         self.grid = [[self.rng.choice(GLYPHS) for _ in range(cols)] for _ in range(self.rows)]
-        # only every other column carries a stream: subtle, readable, half the work
-        self.drops = {c: self._new_drop(start=True) for c in range(0, cols, 2)}
+        # sparse: every other column carries a stream (subtle); dense: every column (cmatrix-like)
+        self.drops = {c: self._new_drop(start=True) for c in range(0, cols, 1 if self.dense else 2)}
         self.colour_cache = [fg(s) for s in SHADES]
 
     def _new_drop(self, start: bool = False) -> list[float]:
@@ -73,11 +74,12 @@ class Rain:
 
 def main(argv: list[str] | None = None) -> int:
     fps = config.profile(config.current_profile())["rain_fps"]
+    dense = bool(argv and "--dense" in argv)
 
     def loop() -> None:
         with Screen() as scr:
             cols, rows = scr.size()
-            rain = Rain(cols, rows - 1)
+            rain = Rain(cols, rows - 1, dense=dense)
             while True:
                 if scr.resized:
                     cols, rows = scr.size()

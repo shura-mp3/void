@@ -9,7 +9,7 @@ alias vdash='void launch'
 alias vstatus='void status'
 
 # Geass fastfetch once per window (not in nested shells, not when disabled)
-if [ "${VOID_STARTUP_FETCH:-1}" = 1 ] && [ -z "${VOID_FETCHED:-}" ]; then
+if { [ "${VOID_STARTUP_FETCH:-1}" = 1 ] || [ -n "${VOID_DASHBOARD_FETCH:-}" ]; } && [ -z "${VOID_FETCHED:-}" ]; then
     export VOID_FETCHED=1
     "$VOID_HOME/bin/void" fetch 2>/dev/null
 fi

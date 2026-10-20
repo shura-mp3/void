@@ -10,13 +10,13 @@
       "3": "38;2;51;51;51"
     },
     "padding": {
-      "top": 1,
+      "top": 2,
       "left": 2,
-      "right": 4
+      "right": 3
     }
   },
   "display": {
-    "separator": " ▸ ",
+    "separator": " ",
     "disableLinewrap": true,
     "color": {
       "keys": "38;2;119;119;119",
@@ -28,59 +28,101 @@
   "modules": [
     "title",
     {
-      "type": "separator",
-      "string": "─"
+      "type": "custom",
+      "format": "┌────── Hardware Information ──────┐",
+      "outputColor": "38;2;170;170;170"
     },
     {
-      "type": "os",
-      "key": "OS       "
-    },
-    {
-      "type": "kernel",
-      "key": "KERNEL   "
-    },
-    {
-      "type": "uptime",
-      "key": "UPTIME   "
-    },
-    {
-      "type": "de",
-      "key": "PLASMA   "
-    },
-    {
-      "type": "wm",
-      "key": "KWIN     "
+      "type": "host",
+      "key": "  ▪ host    ",
+      "keyColor": "38;2;119;119;119"
     },
     {
       "type": "cpu",
-      "key": "CPU      "
+      "key": "  ▪ cpu     ",
+      "keyColor": "38;2;119;119;119"
     },
     {
       "type": "gpu",
-      "key": "GPU      "
+      "key": "  ▪ gpu     ",
+      "keyColor": "38;2;119;119;119"
     },
     {
       "type": "memory",
-      "key": "RAM      "
+      "key": "  ▪ ram     ",
+      "keyColor": "38;2;119;119;119"
     },
     {
       "type": "disk",
-      "key": "STORAGE  ",
+      "key": "  ▪ storage ",
+      "keyColor": "38;2;119;119;119",
       "folders": "/"
     },
     {
-      "type": "terminal",
-      "key": "TERMINAL "
+      "type": "display",
+      "key": "  ▪ display ",
+      "keyColor": "38;2;119;119;119"
     },
     {
-      "type": "display",
-      "key": "DISPLAY  "
+      "type": "custom",
+      "format": "┌────── Software Information ──────┐",
+      "outputColor": "38;2;170;170;170"
+    },
+    {
+      "type": "os",
+      "key": "  ▪ os      ",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "kernel",
+      "key": "  ▪ kernel  ",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "de",
+      "key": "  ▪ plasma  ",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "wm",
+      "key": "  ▪ kwin    ",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "shell",
+      "key": "  ▪ shell   ",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "terminal",
+      "key": "  ▪ terminal",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "packages",
+      "key": "  ▪ packages",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "uptime",
+      "key": "  ▪ uptime  ",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "localip",
+      "key": "  ▪ ip      ",
+      "keyColor": "38;2;119;119;119"
+    },
+    {
+      "type": "custom",
+      "format": "└──────────────────────────────────┘",
+      "outputColor": "38;2;51;51;51"
     },
     "break",
     {
-      "type": "colors",
-      "symbol": "block",
-      "paddingLeft": 0
+      "type": "custom",
+      "format": "❝ @QUOTE@ ❞",
+      "outputColor": "38;2;242;242;242"
     }
   ]
 }

@@ -46,6 +46,11 @@ DEFAULTS: dict[str, Any] = {
     "dashboard": {
         # "auto" = the right-most monitor by KScreen position, or a connector name such as "DP-2".
         "monitor": "auto",
+        # "grid":  one Kitty window, four bordered translucent tiles — fetch+shell, btop, matrix, clock
+        # "music": the five-pane tmux dashboard with now playing + synced lyrics at the bottom
+        "layout": "grid",
+        # Open the dashboard on the right monitor at every login while VOID is active.
+        "autostart": True,
         # minimal | balanced | showcase
         "performance": "balanced",
         # When Feral GameMode reports a running game: "minimal" (drop to the minimal profile) or "ignore".
@@ -55,8 +60,11 @@ DEFAULTS: dict[str, Any] = {
         # Pane programs. "auto" uses the external tool when installed, else VOID's built-in one.
         "system_monitor": "auto",   # auto | btop | builtin
         "clock": "builtin",          # builtin | tty-clock
-        "rain": "builtin",           # builtin | cmatrix
-        "terminal": "auto",          # auto (Konsole, else Kitty, else Alacritty) | konsole | kitty | alacritty
+        "clock_style": "",           # "" = by layout (grid: "segment" 21 29 50 + ISO date; music: "classic")
+        "rain": "auto",              # auto (cmatrix in white if installed, else built-in) | builtin | cmatrix
+        # grid: Kitty (Konsole can't tile — tmux is used there); music: Konsole, else Kitty, else Alacritty
+        "terminal": "auto",          # auto | konsole | kitty | alacritty
+        "quote": "As long as I live, there are infinite chances",
     },
     "konsole": {
         # Make "VOID" Konsole's default profile while VOID is active (restored on deactivate).

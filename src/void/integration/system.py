@@ -67,6 +67,7 @@ def inspect(argv: list[str]) -> int:
     elif k.get("error"):
         row("KDE config", k["error"])
     row("KDE tools", ", ".join(f"{t}{'' if v else ' (missing)'}" for t, v in k["tools"].items()))
+    row("D-Bus tool", kde.dbus_tool() or "NONE — wallpapers and KWin reload will fail (install qt6-qttools)")
     try:
         dp = kde.kread("konsolerc", "Desktop Entry", "DefaultProfile")
         row("Konsole default", dp if isinstance(dp, str) else "(built-in)")
@@ -203,8 +204,9 @@ def health(argv: list[str]) -> int:
         ui.ok(f"dashboard: {len(st['panes'])} panes, {st['clients']} terminal(s) attached")
         if dead:
             problems.append(f"dead dashboard panes: {', '.join(dead)}")
-        if len(st["panes"]) != len(session.PANES):
-            problems.append(f"dashboard has {len(st['panes'])} panes, expected {len(session.PANES)}")
+        want = 4 if any(p["pane"] == "shell" for p in st["panes"]) else 5   # grid / music layout
+        if len(st["panes"]) != want:
+            problems.append(f"dashboard has {len(st['panes'])} panes, expected {want}")
     cr = services.crimson_state(cfg)
     if j.status == "active" and cr["running"]:
         problems.append("Crimson services are running while VOID is active (two Spotify watchers): void activate re-pauses them")

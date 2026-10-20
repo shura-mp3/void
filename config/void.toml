@@ -45,6 +45,7 @@ load_threshold = 0.9
 system_monitor = "auto"   # auto | btop | builtin
 clock = "builtin"          # builtin | tty-clock
 clock_style = ""           # "" = by layout (grid: "segment" 21 29 50 + ISO date; music: "classic")
+clock_lyrics = true        # grid layout: now playing + the current synced lyrics under the clock
 rain = "auto"              # auto (cmatrix in white if installed, else built-in) | builtin | cmatrix
 # grid: Kitty (Konsole can't tile — tmux is used there); music: Konsole, else Kitty, else Alacritty
 terminal = "auto"          # auto | konsole | kitty | alacritty

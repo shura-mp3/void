@@ -289,3 +289,41 @@ class GridDashboardTests(unittest.TestCase):
         mon = res["tiles"]["SYSTEM.MON"]
         self.assertGreaterEqual((mon["columns"], mon["lines"]), (80, 24))      # btop's minimum, at 1920x1080
         self.assertEqual(res["nongrey"], 0)
+
+
+class ClockLyricsTests(unittest.TestCase):
+    def state(self, pos, playing=True):
+        from void.dashboard import music
+        text = (_env.TESTS / "mock_lrclib.py").read_text().split('SYNCED = """')[1].split('"""')[0]
+        now = time.monotonic()
+        st = music.State(connected=True, ui={"perf": {"music_fps": 10}},
+                         player={"playing": playing, "pos_ms": pos, "mono": now,
+                                 "track": {"title": "Everything You Are", "artist": "Void Test", "length_ms": 30000}},
+                         lyrics={"status": "synced", "lines": lrc.parse(text)["lines"], "track_id": "t", "offset_ms": 0})
+        st.line_key, st.line_since = ("t", lrc.line_index(st.lyrics["lines"], pos)), now - 1
+        return st, now
+
+    def test_lyrics_under_the_clock(self):
+        from void.dashboard import clock
+        st, now = self.state(11500)
+        ly = clock.lyric_lines(st, 114, now)
+        rows = [ANSI.sub("", l) for l in clock.render_segment(time.localtime(), 114, 31, True, ly)]
+        joined = "\n".join(rows)
+        order = [joined.index(x) for x in (time.strftime("%Y-%m-%d"), "♪ Everything You Are · Void Test",
+                                            "Come back to me", "Am I sinking or am I swimming")]
+        self.assertEqual(order, sorted(order))                        # date, then now playing, then the lines
+        self.assertLessEqual(len(rows), 31)                            # never taller than the tile
+        cur = next(l for l in ly if "sinking" in l)
+        self.assertIn("\x1b[38;2;242;242;242m\x1b[1m", cur)           # current line bright + bold
+
+    def test_clean_clock_when_nothing_plays(self):
+        from void.dashboard import clock, music
+        self.assertEqual(clock.lyric_lines(music.State(connected=True), 114, time.monotonic()), [])
+        self.assertEqual(clock.lyric_lines(music.State(connected=False), 114, time.monotonic()), [])
+
+    def test_small_tile_keeps_clock(self):
+        from void.dashboard import clock
+        st, now = self.state(11500)
+        rows = clock.render_segment(time.localtime(), 60, 12, True, clock.lyric_lines(st, 60, now))
+        self.assertLessEqual(len(rows), 12)
+        self.assertTrue(any("█" in r or "▀" in r for r in rows))

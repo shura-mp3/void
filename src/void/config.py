@@ -60,7 +60,9 @@ DEFAULTS: dict[str, Any] = {
         # Pane programs. "auto" uses the external tool when installed, else VOID's built-in one.
         "system_monitor": "auto",   # auto | btop | builtin
         "clock": "builtin",          # builtin | tty-clock
-        "clock_style": "",           # "" = by layout (grid: "segment" 21 29 50 + ISO date; music: "classic")
+        "clock_style": "",
+        # grid layout: show now playing + the current synced lyrics under the clock
+        "clock_lyrics": True,           # "" = by layout (grid: "segment" 21 29 50 + ISO date; music: "classic")
         "rain": "auto",              # auto (cmatrix in white if installed, else built-in) | builtin | cmatrix
         # grid: Kitty (Konsole can't tile — tmux is used there); music: Konsole, else Kitty, else Alacritty
         "terminal": "auto",          # auto | konsole | kitty | alacritty
